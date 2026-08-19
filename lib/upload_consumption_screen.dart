@@ -73,6 +73,12 @@ class _UploadConsumptionScreenState extends State<UploadConsumptionScreen> {
     try {
       ConsumptionAnalysisResult result;
       if (_fileName != null) {
+        if (widget.config != null) {
+          widget.config!.csvFilePath = _pickedFile?.path;
+          widget.config!.csvFileName = _fileName;
+          widget.config!.csvFileBytes = _fileBytes ?? _pickedFile?.bytes;
+        }
+        
         result = await ApiService.analyzeConsumption(
           durationMonths: widget.durationMonths,
           filePath: _pickedFile?.path,

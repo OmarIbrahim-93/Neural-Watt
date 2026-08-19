@@ -131,6 +131,7 @@ class _HolidayScheduleScreenState extends State<HolidayScheduleScreen> {
                         ElevatedButton(
                           onPressed: () {
                             widget.config.holidayUsageEnabled = _useElectricityDuringHolidays;
+                            widget.config.holidayDays = _selectedDays.toList();
                             Navigator.push(
                               context,
                               MaterialPageRoute(

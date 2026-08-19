@@ -7,7 +7,9 @@ import 'utils/responsive.dart';
 import 'utils/theme.dart';
 import 'utils/theme_toggle_button.dart';
 
-class ReviewConfigurationScreen extends StatelessWidget {
+import 'services/api_service.dart';
+
+class ReviewConfigurationScreen extends StatefulWidget {
   final ConsumptionAnalysisResult? analysisResult;
   final String dataHandlingMethod;
   final SetupConfig? config;
@@ -20,11 +22,18 @@ class ReviewConfigurationScreen extends StatelessWidget {
   });
 
   @override
+  State<ReviewConfigurationScreen> createState() => _ReviewConfigurationScreenState();
+}
+
+class _ReviewConfigurationScreenState extends State<ReviewConfigurationScreen> {
+  bool _isPredicting = false;
+
+  @override
   Widget build(BuildContext context) {
     final bool isWide = MediaQuery.of(context).size.width >= 800;
     final colors = AppColors.of(context);
-    final result = analysisResult ?? ConsumptionAnalysisResult.fallback(durationMonths: 6);
-    final setup = config ?? SetupConfig();
+    final result = widget.analysisResult ?? ConsumptionAnalysisResult.fallback(durationMonths: 6);
+    final setup = widget.config ?? SetupConfig();
     
     final String targetFacility = setup.facilityName.isEmpty ? 'ABC Factory' : setup.facilityName;
     final String facilityLocation = setup.facilityLocation.isEmpty ? 'Industrial Zone, Sector 4' : setup.facilityLocation;
@@ -113,14 +122,14 @@ class ReviewConfigurationScreen extends StatelessWidget {
                       ),
                       const SizedBox(width: 16),
                       Expanded(
-                        child: _buildDataHandlingCard(dataHandlingMethod, qualityScore, colors),
+                        child: _buildDataHandlingCard(widget.dataHandlingMethod, qualityScore, colors),
                       ),
                     ],
                   )
                 else ...[
                   _buildForecastHorizonCard(duration, colors),
                   const SizedBox(height: 16),
-                  _buildDataHandlingCard(dataHandlingMethod, qualityScore, colors),
+                  _buildDataHandlingCard(widget.dataHandlingMethod, qualityScore, colors),
                   const SizedBox(height: 16),
                   _buildHolidayUsageCard(colors, holidayUsageEnabled),
                 ],
@@ -128,14 +137,47 @@ class ReviewConfigurationScreen extends StatelessWidget {
                 const SizedBox(height: 40),
                 
                 ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const PredictionScreen(),
-                      ),
-                    );
-                  },
+                  onPressed: _isPredicting
+                      ? null
+                      : () async {
+                          setState(() {
+                            _isPredicting = true;
+                          });
+                          try {
+                            // Call API
+                            final backendResult = await ApiService.submitPrediction(
+                              config: setup,
+                              durationMonths: duration,
+                              hasMissingDays: result.missingDaysCount > 0,
+                              dataHandlingMethod: widget.dataHandlingMethod,
+                            );
+
+                            if (mounted) {
+                              setState(() {
+                                _isPredicting = false;
+                              });
+                              // You could pass backendResult to PredictionScreen if needed
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const PredictionScreen(),
+                                ),
+                              );
+                            }
+                          } catch (e) {
+                            if (mounted) {
+                              setState(() {
+                                _isPredicting = false;
+                              });
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Error: $e'),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                            }
+                          }
+                        },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: colors.isDark ? colors.accentBlue : Colors.black,
                     foregroundColor: Colors.white,
@@ -144,17 +186,36 @@ class ReviewConfigurationScreen extends StatelessWidget {
                       borderRadius: BorderRadius.circular(16),
                     ),
                   ),
-                  child: const Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.auto_awesome, size: 20),
-                      SizedBox(width: 12),
-                      Text(
-                        'Predict',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                      ),
-                    ],
-                  ),
+                  child: _isPredicting
+                      ? const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2,
+                              ),
+                            ),
+                            SizedBox(width: 12),
+                            Text(
+                              'Sending Data...',
+                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                            ),
+                          ],
+                        )
+                      : const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.auto_awesome, size: 20),
+                            SizedBox(width: 12),
+                            Text(
+                              'Predict',
+                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                            ),
+                          ],
+                        ),
                 ),
                 const SizedBox(height: 32),
               ],

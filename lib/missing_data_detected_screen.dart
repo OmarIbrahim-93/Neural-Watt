@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'handle_missing_data_screen.dart';
+import 'manual_entry_screen.dart';
 import 'models/consumption_analysis_result.dart';
 import 'models/setup_config.dart';
 import 'utils/responsive.dart';
@@ -80,7 +81,17 @@ class MissingDataDetectedScreen extends StatelessWidget {
                               icon: Icons.edit_note,
                               title: 'Yes',
                               subtitle: 'Proceed to manual entry',
-                              onTap: () {},
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => ManualEntryScreen(
+                                      analysisResult: result,
+                                      config: config,
+                                    ),
+                                  ),
+                                );
+                              },
                               colors: colors,
                             ),
                             const SizedBox(height: 16),
@@ -126,7 +137,17 @@ class MissingDataDetectedScreen extends StatelessWidget {
                     icon: Icons.edit_note,
                     title: 'Yes',
                     subtitle: 'Proceed to manual entry',
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ManualEntryScreen(
+                            analysisResult: result,
+                            config: config,
+                          ),
+                        ),
+                      );
+                    },
                     colors: colors,
                   ),
                   const SizedBox(height: 16),
