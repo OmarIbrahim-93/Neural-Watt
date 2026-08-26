@@ -225,7 +225,7 @@ def convert_to_daily_data(csv_file_path: str, duration_months: int, missing_valu
     # 13. CALCULATE DAILY CONSUMPTION
     # ========================================================
 
-    daily_df = (
+    daily_csv = (
         df.groupby(
             "date",
             as_index=False
@@ -244,7 +244,7 @@ def convert_to_daily_data(csv_file_path: str, duration_months: int, missing_valu
     # ========================================================
 
     start_date = (
-        daily_df["date"].min()
+        daily_csv["date"].min()
     )
 
 
@@ -289,8 +289,8 @@ def convert_to_daily_data(csv_file_path: str, duration_months: int, missing_valu
     # Missing dates will automatically become NaN.
     # ========================================================
 
-    daily_df = (
-        daily_df
+    daily_csv = (
+        daily_csv
         .set_index("date")
         .reindex(complete_dates)
     )
@@ -300,7 +300,7 @@ def convert_to_daily_data(csv_file_path: str, duration_months: int, missing_valu
     # 18. RENAME DATE INDEX
     # ========================================================
 
-    daily_df.index.name = "date"
+    daily_csv.index.name = "date"
 
 
     # ========================================================
@@ -313,15 +313,15 @@ def convert_to_daily_data(csv_file_path: str, duration_months: int, missing_valu
                 date_key = entry.get("date", "")
                 val_str = entry.get("meter_value", "")
                 dt = pd.to_datetime(date_key, dayfirst=True).normalize()
-                mask = daily_df["date"] == dt
+                mask = daily_csv["date"] == dt
                 if mask.any():
-                    daily_df.loc[mask, "consumption"] = float(val_str)
+                    daily_csv.loc[mask, "consumption"] = float(val_str)
             except:
                 pass
 
     # Any remaining missing days (NaN) default to 0
-    daily_df["consumption"] = (
-        daily_df["consumption"]
+    daily_csv["consumption"] = (
+        daily_csv["consumption"]
         .fillna(0)
     )
 
@@ -330,8 +330,8 @@ def convert_to_daily_data(csv_file_path: str, duration_months: int, missing_valu
     # 20. RESET INDEX
     # ========================================================
 
-    daily_df = (
-        daily_df
+    daily_csv = (
+        daily_csv
         .reset_index()
     )
 
@@ -349,8 +349,8 @@ def convert_to_daily_data(csv_file_path: str, duration_months: int, missing_valu
         ).dt.normalize()
     )
 
-    daily_df["is_missing_day"] = (
-        ~daily_df["date"].isin(
+    daily_csv["is_missing_day"] = (
+        ~daily_csv["date"].isin(
             original_dates
         )
     ).astype(int)
@@ -360,8 +360,8 @@ def convert_to_daily_data(csv_file_path: str, duration_months: int, missing_valu
     # 22. SORT
     # ========================================================
 
-    daily_df = (
-        daily_df
+    daily_csv = (
+        daily_csv
         .sort_values("date")
         .reset_index(drop=True)
     )
@@ -371,7 +371,7 @@ def convert_to_daily_data(csv_file_path: str, duration_months: int, missing_valu
     # 23. RETURN
     # ========================================================
 
-    return daily_df
+    return daily_csv
 
 # ============================================================
 # ENDPOINTS
@@ -406,23 +406,72 @@ async def predict_consumption(
                 pass
 
         # 3. Convert to daily data — missing values are applied inside
-        daily_df = convert_to_daily_data(tmp_path, duration_months, missing_values=parsed_missing)
+        daily_csv = convert_to_daily_data(tmp_path, duration_months, missing_values=parsed_missing)
+
+        # 3.5 Perform Analytics
+        from Analytics import Analytics
+        analytics_results, _ = Analytics(daily_csv, resource_type, environment_type, facility_subtype)
 
         # Clean up temp file
         os.remove(tmp_path)
 
-        # 4. Predict Future Consumption
-        predictor = HouseWaterConsumptionPredictor()
-        prediction_result = predictor.get_result_consumption(daily_df)
+        # 4. Route to the appropriate resource logic
+        resource_type_lower = resource_type.lower()
+        if resource_type_lower == "water":
+            from water_consumption import process_water_consumption
+            prediction_result = process_water_consumption(
+                daily_csv, environment_type, facility_subtype, holiday_usage, holiday_days, duration_months, data_handling_method
+            )
+        elif resource_type_lower == "electricity":
+            from electricity_consumption import process_electricity_consumption
+            prediction_result = process_electricity_consumption(
+                daily_csv, environment_type, facility_subtype, holiday_usage, holiday_days, duration_months, data_handling_method
+            )
+        elif resource_type_lower == "gas":
+            from gas_consumption import process_gas_consumption
+            prediction_result = process_gas_consumption(
+                daily_csv, environment_type, facility_subtype, holiday_usage, holiday_days, duration_months, data_handling_method
+            )
+        else:
+            raise ValueError(f"Unknown resource type: {resource_type}")
+
+        if not isinstance(prediction_result, dict):
+            prediction_result = {}
+            
+        actual_val = analytics_results.get("last_1_months", {}).get("total_consumption", round(float(daily_csv["consumption"].sum()), 2))
+        waste_amt = prediction_result.get("waste", {}).get("waste_month", "N/A")
+        
+        facility_data = {
+            "name": "User Facility",
+            "type": environment_type,
+            "location": "Local",
+            resource_type_lower: {
+                "actual": actual_val,
+                "baseline": "N/A",
+                "waste": waste_amt,
+                "current_tier": "N/A",
+                "current_rate": "N/A",
+                "target_limit": "N/A",
+                "target_rate": "N/A",
+                "notes": f"Occupants/Units: {facility_subtype}"
+            }
+        }
+        
+        from LLM_Advices import generate_energy_advice
+        llm_advices = generate_energy_advice(facility_data)
 
         return {
             "status": "success",
             "message": "Prediction processed successfully.",
-            "total_days": len(daily_df),
-            "total_consumption": round(float(daily_df["consumption"].sum()), 2),
+            "total_days": len(daily_csv),
+            "total_consumption": round(float(daily_csv["consumption"].sum()), 2),
             "next_day_prediction": prediction_result.get("next_day"),
             "next_week_prediction": prediction_result.get("next_week"),
             "next_month_prediction": prediction_result.get("next_month"),
+            "next_quarter_prediction": prediction_result.get("next_quarter"),
+            "waste": prediction_result.get("waste"),
+            "analytics": analytics_results,
+            "llm_advices": llm_advices,
             "parameters": {
                 "resource_type": resource_type,
                 "environment_type": environment_type,

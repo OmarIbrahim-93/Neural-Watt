@@ -1,20 +1,33 @@
 import 'package:flutter/material.dart';
+import 'prediction_screen.dart';
 import 'analysis_setup_screen.dart';
+import 'analytics_screen.dart';
 import 'models/setup_config.dart';
 import 'utils/responsive.dart';
 import 'utils/theme.dart';
 import 'utils/theme_toggle_button.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final int initialIndex;
+  
+  const HomeScreen({
+    super.key,
+    this.initialIndex = 0,
+  });
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  int _selectedIndex = 0;
+  late int _selectedIndex;
   String _selectedResource = 'Electricity';
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedIndex = widget.initialIndex;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -57,6 +70,22 @@ class _HomeScreenState extends State<HomeScreen> {
               child: BottomNavigationBar(
                 currentIndex: _selectedIndex,
                 onTap: (index) {
+                  if (index == 2 && PredictionScreen.lastPredictionData != null) {
+                    Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => PredictionScreen(
+                          durationMonths: PredictionScreen.lastDurationMonths ?? 1,
+                          resourceType: PredictionScreen.lastResourceType ?? 'Electricity',
+                          predictionData: PredictionScreen.lastPredictionData,
+                          facilityName: PredictionScreen.lastFacilityName,
+                          environmentType: PredictionScreen.lastEnvironmentType,
+                        ),
+                      ),
+                      (route) => false,
+                    );
+                    return;
+                  }
                   setState(() {
                     _selectedIndex = index;
                   });
@@ -103,7 +132,7 @@ class _HomeScreenState extends State<HomeScreen> {
       case 0:
         return _buildHomeResourceSelection(isWide, colors);
       case 1:
-        return _buildPlaceholderView('Analytics Overview', 'View real-time telemetry, load curves, and efficiency breakdown.', Icons.analytics_outlined, colors);
+        return const AnalyticsScreen();
       case 2:
         return _buildPlaceholderView('AI Predictive Models', 'Forecast energy demand, peak loads, and cost optimization.', Icons.auto_awesome_outlined, colors);
       case 3:

@@ -1,11 +1,39 @@
 import 'dart:ui';
+import 'home_screen.dart';
 import 'package:flutter/material.dart';
 import 'utils/responsive.dart';
 import 'utils/theme.dart';
 import 'utils/theme_toggle_button.dart';
 
 class PredictionScreen extends StatefulWidget {
-  const PredictionScreen({super.key});
+  final int durationMonths;
+  final String resourceType;
+  final Map<String, dynamic>? predictionData;
+  final String? facilityName;
+  final String? environmentType;
+
+  static int? lastDurationMonths;
+  static String? lastResourceType;
+  static Map<String, dynamic>? lastPredictionData;
+  static String? lastFacilityName;
+  static String? lastEnvironmentType;
+
+  PredictionScreen({
+    super.key,
+    this.durationMonths = 1,
+    this.resourceType = 'Electricity',
+    this.predictionData,
+    this.facilityName,
+    this.environmentType,
+  }) {
+    if (predictionData != null) {
+      lastDurationMonths = durationMonths;
+      lastResourceType = resourceType;
+      lastPredictionData = predictionData;
+      if (facilityName != null) lastFacilityName = facilityName;
+      if (environmentType != null) lastEnvironmentType = environmentType;
+    }
+  }
 
   @override
   State<PredictionScreen> createState() => _PredictionScreenState();
@@ -13,19 +41,191 @@ class PredictionScreen extends StatefulWidget {
 
 class _PredictionScreenState extends State<PredictionScreen> {
   int _selectedTabIndex = 0;
-  final List<String> _tabs = ['NEXT DAY', 'NEXT WEEK', 'NEXT MONTH'];
+  late List<String> _tabs;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabs = ['NEXT DAY', 'NEXT WEEK', 'NEXT MONTH'];
+    if (widget.durationMonths >= 9) {
+      _tabs.add('NEXT QUARTER');
+    }
+  }
+
+  String _formatPrediction(dynamic value) {
+    if (value == null) return '0';
+    if (value is num) {
+      if (value == value.toInt()) {
+        return value.toInt().toString();
+      }
+      // Remove trailing zeros using regex after fixing to 3 decimal places
+      return value
+          .toStringAsFixed(3)
+          .replaceAll(RegExp(r'0*$'), '')
+          .replaceAll(RegExp(r'\.$'), '');
+    }
+    return value.toString();
+  }
+
+  String _getPredictedConsumption() {
+    final data = widget.predictionData;
+    if (data != null) {
+      switch (_tabs[_selectedTabIndex]) {
+        case 'NEXT DAY':
+          return _formatPrediction(data['next_day_prediction']);
+        case 'NEXT WEEK':
+          return _formatPrediction(data['next_week_prediction']);
+        case 'NEXT MONTH':
+          return _formatPrediction(data['next_month_prediction']);
+        case 'NEXT QUARTER':
+          return _formatPrediction(
+            data['next_quarter_prediction'] ??
+                (data['next_month_prediction'] != null
+                    ? (data['next_month_prediction'] as num) * 3
+                    : null),
+          );
+      }
+    }
+
+    switch (_tabs[_selectedTabIndex]) {
+      case 'NEXT DAY':
+        return '45';
+      case 'NEXT WEEK':
+        return '315';
+      case 'NEXT MONTH':
+        return '1,310';
+      case 'NEXT QUARTER':
+        return '3,950';
+      default:
+        return '0';
+    }
+  }
+
+  String _getWaste() {
+    final data = widget.predictionData;
+    if (data != null && data['waste'] != null) {
+      final wasteData = data['waste'] as Map<String, dynamic>;
+      switch (_tabs[_selectedTabIndex]) {
+        case 'NEXT DAY':
+          return _formatPrediction(wasteData['waste_day']);
+        case 'NEXT WEEK':
+          return _formatPrediction(wasteData['waste_week']);
+        case 'NEXT MONTH':
+          return _formatPrediction(wasteData['waste_month']);
+        case 'NEXT QUARTER':
+          return _formatPrediction(wasteData['waste_quarter']);
+      }
+    }
+
+    switch (_tabs[_selectedTabIndex]) {
+      case 'NEXT DAY':
+        return '2';
+      case 'NEXT WEEK':
+        return '15';
+      case 'NEXT MONTH':
+        return '85';
+      case 'NEXT QUARTER':
+        return '250';
+      default:
+        return '0';
+    }
+  }
+
+  double _getCalculatedWasteRatio() {
+    final data = widget.predictionData;
+    if (data != null && data['waste'] != null) {
+      final wasteData = data['waste'] as Map<String, dynamic>;
+      double? wasteVal;
+      double? predVal;
+
+      switch (_tabs[_selectedTabIndex]) {
+        case 'NEXT DAY':
+          wasteVal = (wasteData['waste_day'] as num?)?.toDouble();
+          predVal = (data['next_day_prediction'] as num?)?.toDouble();
+          break;
+        case 'NEXT WEEK':
+          wasteVal = (wasteData['waste_week'] as num?)?.toDouble();
+          predVal = (data['next_week_prediction'] as num?)?.toDouble();
+          break;
+        case 'NEXT MONTH':
+          wasteVal = (wasteData['waste_month'] as num?)?.toDouble();
+          predVal = (data['next_month_prediction'] as num?)?.toDouble();
+          break;
+        case 'NEXT QUARTER':
+          wasteVal = (wasteData['waste_quarter'] as num?)?.toDouble();
+          predVal = (data['next_quarter_prediction'] as num?)?.toDouble();
+          break;
+      }
+
+      if (wasteVal != null && predVal != null && predVal > 0) {
+        return wasteVal / predVal;
+      }
+      return 0.0;
+    }
+
+    switch (_tabs[_selectedTabIndex]) {
+      case 'NEXT DAY':
+        return 0.044;
+      case 'NEXT WEEK':
+        return 0.047;
+      case 'NEXT MONTH':
+        return 0.065;
+      case 'NEXT QUARTER':
+        return 0.063;
+      default:
+        return 0.0;
+    }
+  }
+
+  String _getWasteRatio() {
+    final data = widget.predictionData;
+    if (data != null && data['waste'] != null) {
+      final ratio = _getCalculatedWasteRatio() * 100;
+      return '${ratio.toStringAsFixed(1)}%';
+    }
+
+    switch (_tabs[_selectedTabIndex]) {
+      case 'NEXT DAY':
+        return '4.4%';
+      case 'NEXT WEEK':
+        return '4.7%';
+      case 'NEXT MONTH':
+        return '6.5%';
+      case 'NEXT QUARTER':
+        return '6.3%';
+      default:
+        return '0%';
+    }
+  }
+
+  double _getWasteRatioValue() {
+    return _getCalculatedWasteRatio();
+  }
+
+  String _getUnit() {
+    if (widget.resourceType.toLowerCase() == 'electricity') {
+      return 'kWh';
+    }
+    return 'm³';
+  }
 
   @override
   Widget build(BuildContext context) {
     final colors = AppColors.of(context);
     final isWide = MediaQuery.of(context).size.width >= 800;
-    
+
     // Derived colors for this specific UI
-    final cardBgColor = colors.isDark ? const Color(0xFF1E293B).withValues(alpha: 0.5) : Colors.white;
-    final cardBorderColor = colors.isDark ? Colors.white.withValues(alpha: 0.1) : colors.cardBorder;
+    final cardBgColor = colors.isDark
+        ? const Color(0xFF1E293B).withValues(alpha: 0.5)
+        : Colors.white;
+    final cardBorderColor = colors.isDark
+        ? Colors.white.withValues(alpha: 0.1)
+        : colors.cardBorder;
 
     return Scaffold(
-      backgroundColor: colors.isDark ? const Color(0xFF0B1120) : colors.scaffoldBackground,
+      backgroundColor: colors.isDark
+          ? const Color(0xFF0B1120)
+          : colors.scaffoldBackground,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -36,12 +236,12 @@ class _PredictionScreenState extends State<PredictionScreen> {
         ),
         title: Text(
           'NeuralWatt',
-          style: TextStyle(color: colors.textPrimary, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            color: colors.textPrimary,
+            fontWeight: FontWeight.bold,
+          ),
         ),
-        actions: const [
-          ThemeToggleButton(),
-          SizedBox(width: 8),
-        ],
+        actions: const [ThemeToggleButton(), SizedBox(width: 8)],
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -55,7 +255,7 @@ class _PredictionScreenState extends State<PredictionScreen> {
                 const SizedBox(height: 16),
                 _buildTabs(colors),
                 const SizedBox(height: 24),
-                
+
                 if (isWide)
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -64,40 +264,85 @@ class _PredictionScreenState extends State<PredictionScreen> {
                         flex: 5,
                         child: Column(
                           children: [
-                            _buildPredictedConsumptionCard(colors, cardBgColor, cardBorderColor),
+                            _buildPredictedConsumptionCard(
+                              colors,
+                              cardBgColor,
+                              cardBorderColor,
+                            ),
                             const SizedBox(height: 16),
                             Row(
                               children: [
-                                Expanded(child: _buildEstWasteCard(colors, cardBgColor, cardBorderColor)),
+                                Expanded(
+                                  child: _buildEstWasteCard(
+                                    colors,
+                                    cardBgColor,
+                                    cardBorderColor,
+                                  ),
+                                ),
                                 const SizedBox(width: 16),
-                                Expanded(child: _buildWasteRatioCard(colors, cardBgColor, cardBorderColor)),
+                                Expanded(
+                                  child: _buildWasteRatioCard(
+                                    colors,
+                                    cardBgColor,
+                                    cardBorderColor,
+                                  ),
+                                ),
                               ],
                             ),
                           ],
                         ),
                       ),
-                      const SizedBox(width: 24),
-                      Expanded(
-                        flex: 6,
-                        child: _buildConsumptionForecastCard(colors, cardBgColor, cardBorderColor),
-                      ),
+                      if (_selectedTabIndex != 0) ...[
+                        const SizedBox(width: 24),
+                        Expanded(
+                          flex: 6,
+                          child: _buildConsumptionForecastCard(
+                            colors,
+                            cardBgColor,
+                            cardBorderColor,
+                          ),
+                        ),
+                      ],
                     ],
                   )
                 else ...[
-                  _buildPredictedConsumptionCard(colors, cardBgColor, cardBorderColor),
+                  _buildPredictedConsumptionCard(
+                    colors,
+                    cardBgColor,
+                    cardBorderColor,
+                  ),
                   const SizedBox(height: 16),
                   Row(
                     children: [
-                      Expanded(child: _buildEstWasteCard(colors, cardBgColor, cardBorderColor)),
+                      Expanded(
+                        child: _buildEstWasteCard(
+                          colors,
+                          cardBgColor,
+                          cardBorderColor,
+                        ),
+                      ),
                       const SizedBox(width: 16),
-                      Expanded(child: _buildWasteRatioCard(colors, cardBgColor, cardBorderColor)),
+                      Expanded(
+                        child: _buildWasteRatioCard(
+                          colors,
+                          cardBgColor,
+                          cardBorderColor,
+                        ),
+                      ),
                     ],
                   ),
+                  if (_selectedTabIndex != 0) ...[
+                    const SizedBox(height: 16),
+                    _buildConsumptionForecastCard(
+                      colors,
+                      cardBgColor,
+                      cardBorderColor,
+                    ),
+                  ],
                   const SizedBox(height: 16),
-                  _buildConsumptionForecastCard(colors, cardBgColor, cardBorderColor),
+                  _buildAdviceCard(colors, cardBgColor, cardBorderColor),
+                  const SizedBox(height: 32),
                 ],
-                
-                const SizedBox(height: 32),
               ],
             ),
           ),
@@ -116,7 +361,10 @@ class _PredictionScreenState extends State<PredictionScreen> {
           onTap: () => setState(() => _selectedTabIndex = index),
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 200),
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            padding: EdgeInsets.symmetric(
+              horizontal: _tabs.length > 3 ? 12 : 20,
+              vertical: 10,
+            ),
             decoration: BoxDecoration(
               color: isSelected ? const Color(0xFF4F8AFC) : Colors.transparent,
               borderRadius: BorderRadius.circular(20),
@@ -126,7 +374,7 @@ class _PredictionScreenState extends State<PredictionScreen> {
               style: TextStyle(
                 color: isSelected ? Colors.white : colors.textSecondary,
                 fontWeight: FontWeight.bold,
-                fontSize: 12,
+                fontSize: _tabs.length > 3 ? 10 : 12,
                 letterSpacing: 0.5,
               ),
             ),
@@ -136,7 +384,11 @@ class _PredictionScreenState extends State<PredictionScreen> {
     );
   }
 
-  Widget _buildPredictedConsumptionCard(AppColors colors, Color bg, Color border) {
+  Widget _buildPredictedConsumptionCard(
+    AppColors colors,
+    Color bg,
+    Color border,
+  ) {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -165,7 +417,7 @@ class _PredictionScreenState extends State<PredictionScreen> {
                 textBaseline: TextBaseline.alphabetic,
                 children: [
                   Text(
-                    '1,310',
+                    _getPredictedConsumption(),
                     style: TextStyle(
                       fontSize: 48,
                       fontWeight: FontWeight.bold,
@@ -175,7 +427,7 @@ class _PredictionScreenState extends State<PredictionScreen> {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    'kWh',
+                    _getUnit(),
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
@@ -186,7 +438,10 @@ class _PredictionScreenState extends State<PredictionScreen> {
               ),
               const SizedBox(height: 16),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   color: const Color(0xFF064E3B).withValues(alpha: 0.5),
                   borderRadius: BorderRadius.circular(6),
@@ -194,7 +449,11 @@ class _PredictionScreenState extends State<PredictionScreen> {
                 child: const Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.trending_down, color: Color(0xFF34D399), size: 16),
+                    Icon(
+                      Icons.trending_down,
+                      color: Color(0xFF34D399),
+                      size: 16,
+                    ),
                     SizedBox(width: 4),
                     Text(
                       '-4.2% vs avg',
@@ -215,7 +474,9 @@ class _PredictionScreenState extends State<PredictionScreen> {
             child: Icon(
               Icons.auto_awesome,
               size: 100,
-              color: colors.isDark ? Colors.white.withValues(alpha: 0.05) : colors.accentBlue.withValues(alpha: 0.1),
+              color: colors.isDark
+                  ? Colors.white.withValues(alpha: 0.05)
+                  : colors.accentBlue.withValues(alpha: 0.1),
             ),
           ),
         ],
@@ -255,7 +516,7 @@ class _PredictionScreenState extends State<PredictionScreen> {
             textBaseline: TextBaseline.alphabetic,
             children: [
               Text(
-                '85',
+                _getWaste(),
                 style: TextStyle(
                   fontSize: 40,
                   fontWeight: FontWeight.bold,
@@ -265,7 +526,7 @@ class _PredictionScreenState extends State<PredictionScreen> {
               ),
               const SizedBox(width: 4),
               Text(
-                'kWh',
+                _getUnit(),
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
@@ -301,7 +562,7 @@ class _PredictionScreenState extends State<PredictionScreen> {
           ),
           const SizedBox(height: 12),
           Text(
-            '6.5%',
+            _getWasteRatio(),
             style: const TextStyle(
               fontSize: 40,
               fontWeight: FontWeight.bold,
@@ -315,12 +576,14 @@ class _PredictionScreenState extends State<PredictionScreen> {
               Container(
                 height: 6,
                 decoration: BoxDecoration(
-                  color: colors.isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.1),
+                  color: colors.isDark
+                      ? Colors.white.withValues(alpha: 0.1)
+                      : Colors.black.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(3),
                 ),
               ),
               FractionallySizedBox(
-                widthFactor: 0.065,
+                widthFactor: _getWasteRatioValue(),
                 child: Container(
                   height: 6,
                   decoration: BoxDecoration(
@@ -336,7 +599,11 @@ class _PredictionScreenState extends State<PredictionScreen> {
     );
   }
 
-  Widget _buildConsumptionForecastCard(AppColors colors, Color bg, Color border) {
+  Widget _buildConsumptionForecastCard(
+    AppColors colors,
+    Color bg,
+    Color border,
+  ) {
     final isWide = MediaQuery.of(context).size.width >= 800;
     return Container(
       padding: const EdgeInsets.only(top: 24, left: 24, right: 24, bottom: 16),
@@ -363,17 +630,23 @@ class _PredictionScreenState extends State<PredictionScreen> {
             children: [
               _buildLegendItem('Actual', colors.textSecondary, isDashed: false),
               const SizedBox(width: 16),
-              _buildLegendItem('Predicted', const Color(0xFF4F8AFC), isDashed: true),
+              _buildLegendItem(
+                'Predicted',
+                const Color(0xFF4F8AFC),
+                isDashed: true,
+              ),
             ],
           ),
           const SizedBox(height: 24),
-            SizedBox(
-              height: isWide ? 260 : 140, // Taller chart for wide screens
-              child: CustomPaint(
+          SizedBox(
+            height: isWide ? 260 : 140, // Taller chart for wide screens
+            child: CustomPaint(
               painter: ForecastChartPainter(
                 lineColor: colors.textSecondary.withValues(alpha: 0.5),
                 predictColor: const Color(0xFF4F8AFC),
-                gridColor: colors.isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.05),
+                gridColor: colors.isDark
+                    ? Colors.white.withValues(alpha: 0.05)
+                    : Colors.black.withValues(alpha: 0.05),
               ),
               child: Stack(
                 children: [
@@ -385,14 +658,20 @@ class _PredictionScreenState extends State<PredictionScreen> {
                       height: 60,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: colors.isDark ? const Color(0xFF1E3A8A).withValues(alpha: 0.3) : const Color(0xFFDBEAFE),
+                        color: colors.isDark
+                            ? const Color(0xFF1E3A8A).withValues(alpha: 0.3)
+                            : const Color(0xFFDBEAFE),
                         border: Border.all(
                           color: const Color(0xFF4F8AFC).withValues(alpha: 0.3),
                           width: 2,
                         ),
                       ),
                       child: const Center(
-                        child: Icon(Icons.hub, color: Color(0xFF4F8AFC), size: 30),
+                        child: Icon(
+                          Icons.hub,
+                          color: Color(0xFF4F8AFC),
+                          size: 30,
+                        ),
                       ),
                     ),
                   ),
@@ -433,70 +712,171 @@ class _PredictionScreenState extends State<PredictionScreen> {
     );
   }
 
-  Widget _buildBottomNav(AppColors colors) {
-    return Container(
-      padding: const EdgeInsets.only(bottom: 24, top: 12, left: 16, right: 16),
-      decoration: BoxDecoration(
-        color: colors.isDark ? const Color(0xFF111827) : Colors.white,
-        border: Border(top: BorderSide(color: colors.isDark ? Colors.white.withValues(alpha: 0.05) : colors.cardBorder)),
-      ),
-      child: SafeArea(
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            _buildNavItem(Icons.home_outlined, 'Home', false, colors),
-            _buildNavItem(Icons.analytics_outlined, 'Analytics', false, colors),
-            _buildPredictNavItem(colors),
-            _buildNavItem(Icons.delete_outline, 'Waste', false, colors),
-            _buildNavItem(Icons.person_outline, 'Profile', false, colors),
-          ],
-        ),
-      ),
-    );
-  }
+  Widget _buildAdviceCard(AppColors colors, Color bg, Color border) {
+    final data = widget.predictionData;
+    if (data == null || data['llm_advices'] == null) {
+      return const SizedBox.shrink();
+    }
+    final advices = data['llm_advices'] as Map<String, dynamic>;
+    
+    String key;
+    switch (_tabs[_selectedTabIndex]) {
+      case 'NEXT DAY':
+        key = 'day';
+        break;
+      case 'NEXT WEEK':
+        key = 'week';
+        break;
+      case 'NEXT MONTH':
+        key = 'month';
+        break;
+      case 'NEXT QUARTER':
+        key = 'quarter';
+        break;
+      default:
+        key = 'day';
+    }
 
-  Widget _buildNavItem(IconData icon, String label, bool isSelected, AppColors colors) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(
-          icon,
-          color: isSelected ? const Color(0xFF4F8AFC) : colors.textSecondary,
-          size: 24,
-        ),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: TextStyle(
-            color: isSelected ? const Color(0xFF4F8AFC) : colors.textSecondary,
-            fontSize: 10,
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-          ),
-        ),
-      ],
-    );
-  }
+    final List<dynamic>? bulletPoints = advices[key];
+    if (bulletPoints == null || bulletPoints.isEmpty) {
+      return const SizedBox.shrink();
+    }
 
-  Widget _buildPredictNavItem(AppColors colors) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: colors.isDark ? const Color(0xFF334155).withValues(alpha: 0.8) : const Color(0xFFE2E8F0),
-        borderRadius: BorderRadius.circular(24),
+        color: bg,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: border),
       ),
       child: Column(
-        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Predict',
-            style: TextStyle(
-              color: colors.textSecondary,
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-            ),
+          Row(
+            children: [
+              const Icon(Icons.tips_and_updates_outlined, size: 18, color: Color(0xFFFBBF24)),
+              const SizedBox(width: 8),
+              Text(
+                'AI EFFICIENCY ADVICE',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                  color: colors.textSecondary,
+                  letterSpacing: 0.5,
+                ),
+              ),
+            ],
           ),
+          const SizedBox(height: 16),
+          ...bulletPoints.map((point) => Padding(
+                padding: const EdgeInsets.only(bottom: 8.0),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '• ',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: colors.textPrimary,
+                        height: 1.2,
+                      ),
+                    ),
+                    Expanded(
+                      child: Text(
+                        point.toString(),
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: colors.textPrimary,
+                          height: 1.4,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              )),
         ],
       ),
+    );
+  }
+
+  Widget _buildBottomNav(AppColors colors) {
+    return Container(
+      decoration: BoxDecoration(
+        color: colors.navBarBackground,
+        border: Border(top: BorderSide(color: colors.navBarBorder)),
+      ),
+      child: SafeArea(
+        child: Align(
+          alignment: Alignment.center,
+          heightFactor: 1.0,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 680),
+            child: BottomNavigationBar(
+              currentIndex: 2, // PREDICT is active
+              onTap: (index) {
+                if (index != 2) {
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => HomeScreen(initialIndex: index),
+                    ),
+                    (route) => false,
+                  );
+                }
+              },
+              type: BottomNavigationBarType.fixed,
+              backgroundColor: colors.navBarBackground,
+              elevation: 0,
+              selectedItemColor: colors.accentBlue,
+              unselectedItemColor: colors.textSecondary,
+              selectedLabelStyle: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+              ),
+              unselectedLabelStyle: const TextStyle(
+                fontWeight: FontWeight.normal,
+                fontSize: 12,
+              ),
+              items: [
+                BottomNavigationBarItem(
+                  icon: _buildNavIcon(Icons.home_filled, 0, colors),
+                  label: 'HOME',
+                ),
+                BottomNavigationBarItem(
+                  icon: _buildNavIcon(Icons.analytics_outlined, 1, colors),
+                  label: 'ANALYTICS',
+                ),
+                BottomNavigationBarItem(
+                  icon: _buildNavIcon(Icons.auto_awesome_outlined, 2, colors),
+                  label: 'PREDICT',
+                ),
+                BottomNavigationBarItem(
+                  icon: _buildNavIcon(Icons.delete_outline, 3, colors),
+                  label: 'WASTE',
+                ),
+                BottomNavigationBarItem(
+                  icon: _buildNavIcon(Icons.person_outline, 4, colors),
+                  label: 'PROFILE',
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNavIcon(IconData icon, int index, AppColors colors) {
+    bool isSelected = 2 == index;
+    if (!isSelected) return Icon(icon);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      decoration: BoxDecoration(
+        color: colors.accentContainer,
+        borderRadius: const BorderRadius.all(Radius.circular(12)),
+      ),
+      child: Icon(icon, color: colors.accentBlue),
     );
   }
 }
@@ -522,10 +902,25 @@ class ForecastChartPainter extends CustomPainter {
       ..color = gridColor
       ..strokeWidth = 2
       ..style = PaintingStyle.stroke;
-    
-    _drawDashedLine(canvas, Offset(0, height * 0.2), Offset(width, height * 0.2), gridPaint);
-    _drawDashedLine(canvas, Offset(0, height * 0.5), Offset(width, height * 0.5), gridPaint);
-    _drawDashedLine(canvas, Offset(0, height * 0.8), Offset(width, height * 0.8), gridPaint);
+
+    _drawDashedLine(
+      canvas,
+      Offset(0, height * 0.2),
+      Offset(width, height * 0.2),
+      gridPaint,
+    );
+    _drawDashedLine(
+      canvas,
+      Offset(0, height * 0.5),
+      Offset(width, height * 0.5),
+      gridPaint,
+    );
+    _drawDashedLine(
+      canvas,
+      Offset(0, height * 0.8),
+      Offset(width, height * 0.8),
+      gridPaint,
+    );
 
     // Points for actual data (smooth curve)
     final actualPoints = [
@@ -567,7 +962,7 @@ class ForecastChartPainter extends CustomPainter {
       ..strokeWidth = 4
       ..strokeCap = StrokeCap.round
       ..style = PaintingStyle.stroke;
-    
+
     _drawDashedPath(canvas, predictPath, predictPaint);
 
     // Draw Predicted Dots
@@ -581,16 +976,12 @@ class ForecastChartPainter extends CustomPainter {
     final path = Path();
     if (points.isEmpty) return path;
     path.moveTo(points.first.dx, points.first.dy);
-    
+
     for (int i = 0; i < points.length - 1; i++) {
       final p0 = points[i];
       final p1 = points[i + 1];
       final controlPointX = p0.dx + (p1.dx - p0.dx) / 2;
-      path.cubicTo(
-        controlPointX, p0.dy,
-        controlPointX, p1.dy,
-        p1.dx, p1.dy,
-      );
+      path.cubicTo(controlPointX, p0.dy, controlPointX, p1.dy, p1.dx, p1.dy);
     }
     return path;
   }

@@ -22,7 +22,8 @@ class ReviewConfigurationScreen extends StatefulWidget {
   });
 
   @override
-  State<ReviewConfigurationScreen> createState() => _ReviewConfigurationScreenState();
+  State<ReviewConfigurationScreen> createState() =>
+      _ReviewConfigurationScreenState();
 }
 
 class _ReviewConfigurationScreenState extends State<ReviewConfigurationScreen> {
@@ -32,14 +33,22 @@ class _ReviewConfigurationScreenState extends State<ReviewConfigurationScreen> {
   Widget build(BuildContext context) {
     final bool isWide = MediaQuery.of(context).size.width >= 800;
     final colors = AppColors.of(context);
-    final result = widget.analysisResult ?? ConsumptionAnalysisResult.fallback(durationMonths: 6);
+    final result =
+        widget.analysisResult ??
+        ConsumptionAnalysisResult.fallback(durationMonths: 6);
     final setup = widget.config ?? SetupConfig();
-    
-    final String targetFacility = setup.facilityName.isEmpty ? 'ABC Factory' : setup.facilityName;
-    final String facilityLocation = setup.facilityLocation.isEmpty ? 'Industrial Zone, Sector 4' : setup.facilityLocation;
-    final String resource = setup.resource.isEmpty ? 'Electricity' : setup.resource;
+
+    final String targetFacility = setup.facilityName.isEmpty
+        ? 'ABC Factory'
+        : setup.facilityName;
+    final String facilityLocation = setup.facilityLocation.isEmpty
+        ? 'Industrial Zone, Sector 4'
+        : setup.facilityLocation;
+    final String resource = setup.resource.isEmpty
+        ? 'Electricity'
+        : setup.resource;
     final bool holidayUsageEnabled = setup.holidayUsageEnabled;
-    
+
     final int duration = result.durationMonths;
     final double qualityScore = result.completenessPercentage;
 
@@ -54,13 +63,13 @@ class _ReviewConfigurationScreenState extends State<ReviewConfigurationScreen> {
         ),
         title: Text(
           'NeuralWatt',
-          style: TextStyle(color: colors.textPrimary, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            color: colors.textPrimary,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         centerTitle: true,
-        actions: const [
-          ThemeToggleButton(),
-          SizedBox(width: 8),
-        ],
+        actions: const [ThemeToggleButton(), SizedBox(width: 8)],
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -90,23 +99,35 @@ class _ReviewConfigurationScreenState extends State<ReviewConfigurationScreen> {
                   ),
                 ),
                 const SizedBox(height: 32),
-                
+
                 if (isWide)
                   Row(
                     children: [
-                      Expanded(child: _buildTargetFacilityCard(colors, setup, targetFacility, facilityLocation)),
+                      Expanded(
+                        child: _buildTargetFacilityCard(
+                          colors,
+                          setup,
+                          targetFacility,
+                          facilityLocation,
+                        ),
+                      ),
                       const SizedBox(width: 16),
                       Expanded(child: _buildResourceCard(colors, resource)),
                     ],
                   )
                 else ...[
-                  _buildTargetFacilityCard(colors, setup, targetFacility, facilityLocation),
+                  _buildTargetFacilityCard(
+                    colors,
+                    setup,
+                    targetFacility,
+                    facilityLocation,
+                  ),
                   const SizedBox(height: 16),
                   _buildResourceCard(colors, resource),
                 ],
-                
+
                 const SizedBox(height: 16),
-                
+
                 if (isWide)
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -122,20 +143,28 @@ class _ReviewConfigurationScreenState extends State<ReviewConfigurationScreen> {
                       ),
                       const SizedBox(width: 16),
                       Expanded(
-                        child: _buildDataHandlingCard(widget.dataHandlingMethod, qualityScore, colors),
+                        child: _buildDataHandlingCard(
+                          widget.dataHandlingMethod,
+                          qualityScore,
+                          colors,
+                        ),
                       ),
                     ],
                   )
                 else ...[
                   _buildForecastHorizonCard(duration, colors),
                   const SizedBox(height: 16),
-                  _buildDataHandlingCard(widget.dataHandlingMethod, qualityScore, colors),
+                  _buildDataHandlingCard(
+                    widget.dataHandlingMethod,
+                    qualityScore,
+                    colors,
+                  ),
                   const SizedBox(height: 16),
                   _buildHolidayUsageCard(colors, holidayUsageEnabled),
                 ],
 
                 const SizedBox(height: 40),
-                
+
                 ElevatedButton(
                   onPressed: _isPredicting
                       ? null
@@ -145,12 +174,13 @@ class _ReviewConfigurationScreenState extends State<ReviewConfigurationScreen> {
                           });
                           try {
                             // Call API
-                            final backendResult = await ApiService.submitPrediction(
-                              config: setup,
-                              durationMonths: duration,
-                              hasMissingDays: result.missingDaysCount > 0,
-                              dataHandlingMethod: widget.dataHandlingMethod,
-                            );
+                            final backendResult =
+                                await ApiService.submitPrediction(
+                                  config: setup,
+                                  durationMonths: duration,
+                                  hasMissingDays: result.missingDaysCount > 0,
+                                  dataHandlingMethod: widget.dataHandlingMethod,
+                                );
 
                             if (mounted) {
                               setState(() {
@@ -160,7 +190,13 @@ class _ReviewConfigurationScreenState extends State<ReviewConfigurationScreen> {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => const PredictionScreen(),
+                                  builder: (context) => PredictionScreen(
+                                    durationMonths: duration,
+                                    resourceType: resource,
+                                    predictionData: backendResult,
+                                    facilityName: setup.facilityName,
+                                    environmentType: setup.environmentType.name,
+                                  ),
                                 ),
                               );
                             }
@@ -179,7 +215,9 @@ class _ReviewConfigurationScreenState extends State<ReviewConfigurationScreen> {
                           }
                         },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: colors.isDark ? colors.accentBlue : Colors.black,
+                    backgroundColor: colors.isDark
+                        ? colors.accentBlue
+                        : Colors.black,
                     foregroundColor: Colors.white,
                     minimumSize: const Size.fromHeight(60),
                     shape: RoundedRectangleBorder(
@@ -201,7 +239,10 @@ class _ReviewConfigurationScreenState extends State<ReviewConfigurationScreen> {
                             SizedBox(width: 12),
                             Text(
                               'Sending Data...',
-                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ],
                         )
@@ -212,7 +253,10 @@ class _ReviewConfigurationScreenState extends State<ReviewConfigurationScreen> {
                             SizedBox(width: 12),
                             Text(
                               'Predict',
-                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ],
                         ),
@@ -237,16 +281,18 @@ class _ReviewConfigurationScreenState extends State<ReviewConfigurationScreen> {
       decoration: BoxDecoration(
         color: backgroundColor ?? colors.cardBackground,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: borderColor ?? colors.cardBorder,
-          width: 1,
-        ),
+        border: Border.all(color: borderColor ?? colors.cardBorder, width: 1),
       ),
       child: child,
     );
   }
 
-  Widget _buildTargetFacilityCard(AppColors colors, SetupConfig setup, String name, String location) {
+  Widget _buildTargetFacilityCard(
+    AppColors colors,
+    SetupConfig setup,
+    String name,
+    String location,
+  ) {
     String topLabel = 'TARGET FACILITY';
     if (setup.facilitySubType.isNotEmpty) {
       switch (setup.environmentType) {
@@ -292,7 +338,11 @@ class _ReviewConfigurationScreenState extends State<ReviewConfigurationScreen> {
                 const SizedBox(height: 8),
                 Row(
                   children: [
-                    Icon(Icons.location_on_outlined, size: 16, color: colors.accentBlue),
+                    Icon(
+                      Icons.location_on_outlined,
+                      size: 16,
+                      color: colors.accentBlue,
+                    ),
                     const SizedBox(width: 4),
                     Expanded(
                       child: Text(
@@ -317,7 +367,8 @@ class _ReviewConfigurationScreenState extends State<ReviewConfigurationScreen> {
   Widget _buildResourceCard(AppColors colors, String resource) {
     IconData icon = Icons.bolt_rounded;
     if (resource.toLowerCase() == 'water') icon = Icons.water_drop_outlined;
-    if (resource.toLowerCase() == 'gas') icon = Icons.local_fire_department_outlined;
+    if (resource.toLowerCase() == 'gas')
+      icon = Icons.local_fire_department_outlined;
 
     return _buildCard(
       colors: colors,
@@ -350,7 +401,7 @@ class _ReviewConfigurationScreenState extends State<ReviewConfigurationScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 4), 
+          const SizedBox(height: 4),
         ],
       ),
     );
@@ -400,7 +451,11 @@ class _ReviewConfigurationScreenState extends State<ReviewConfigurationScreen> {
     );
   }
 
-  Widget _buildDataHandlingCard(String method, double qualityScore, AppColors colors) {
+  Widget _buildDataHandlingCard(
+    String method,
+    double qualityScore,
+    AppColors colors,
+  ) {
     return _buildCard(
       colors: colors,
       child: Column(
@@ -432,21 +487,21 @@ class _ReviewConfigurationScreenState extends State<ReviewConfigurationScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            method == 'AI Estimated' 
-              ? 'Missing data points will be synthesized using historical patterns.'
-              : 'Using actual available data. No synthetic estimation applied.',
+            method == 'AI Estimated'
+                ? 'Missing data points will be synthesized using historical patterns.'
+                : 'Using actual available data. No synthetic estimation applied.',
             style: TextStyle(
               fontSize: 13,
               color: colors.textSecondary,
               height: 1.5,
             ),
           ),
-          
+
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 20.0),
             child: Divider(color: colors.cardBorder),
           ),
-          
+
           Text(
             'DATA QUALITY SCORE',
             style: TextStyle(
@@ -474,7 +529,9 @@ class _ReviewConfigurationScreenState extends State<ReviewConfigurationScreen> {
                   child: LinearProgressIndicator(
                     value: qualityScore / 100,
                     backgroundColor: colors.accentContainer,
-                    valueColor: AlwaysStoppedAnimation<Color>(colors.accentBlue),
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      colors.accentBlue,
+                    ),
                     minHeight: 8,
                   ),
                 ),
@@ -483,11 +540,10 @@ class _ReviewConfigurationScreenState extends State<ReviewConfigurationScreen> {
           ),
           const SizedBox(height: 12),
           Text(
-            qualityScore >= 90 ? 'Excellent base for prediction.' : 'Moderate base for prediction.',
-            style: TextStyle(
-              fontSize: 13,
-              color: colors.textSecondary,
-            ),
+            qualityScore >= 90
+                ? 'Excellent base for prediction.'
+                : 'Moderate base for prediction.',
+            style: TextStyle(fontSize: 13, color: colors.textSecondary),
           ),
         ],
       ),
@@ -506,7 +562,11 @@ class _ReviewConfigurationScreenState extends State<ReviewConfigurationScreen> {
               color: Color(0xFF1E293B),
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.event_note_outlined, color: Colors.white, size: 20),
+            child: const Icon(
+              Icons.event_note_outlined,
+              color: Colors.white,
+              size: 20,
+            ),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -538,9 +598,14 @@ class _ReviewConfigurationScreenState extends State<ReviewConfigurationScreen> {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
-                  color: holidayUsageEnabled ? colors.accentBlue : colors.cardBorder,
+                  color: holidayUsageEnabled
+                      ? colors.accentBlue
+                      : colors.cardBorder,
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
