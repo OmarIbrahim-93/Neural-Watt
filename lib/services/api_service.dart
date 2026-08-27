@@ -48,7 +48,7 @@ class ApiService {
         }
 
         final streamedResponse = await request.send().timeout(
-          const Duration(seconds: 3),
+          const Duration(seconds: 30),
         );
         final response = await http.Response.fromStream(streamedResponse);
 
@@ -61,8 +61,12 @@ class ApiService {
           debugPrint('Expected Days Count: ${data['expected_days_count']}');
           debugPrint('Available Days Count: ${data['available_days_count']}');
           debugPrint('Missing Days Count: ${data['missing_days_count']}');
-          debugPrint('Completeness Percentage: ${data['completeness_percentage']}%');
-          debugPrint('Missing Days List Length: ${(data['missing_days'] as List?)?.length}');
+          debugPrint(
+            'Completeness Percentage: ${data['completeness_percentage']}%',
+          );
+          debugPrint(
+            'Missing Days List Length: ${(data['missing_days'] as List?)?.length}',
+          );
           debugPrint('======================================================');
           return ConsumptionAnalysisResult.fromJson(data);
         } else {
@@ -124,24 +128,35 @@ class ApiService {
         request.fields['data_handling_method'] = dataHandlingMethod;
 
         // ---- DEBUG: Log everything being sent to the API ----
-        debugPrint('================ SUBMIT PREDICTION REQUEST ================');
+        debugPrint(
+          '================ SUBMIT PREDICTION REQUEST ================',
+        );
         debugPrint('URL: $uri');
         request.fields.forEach((key, value) {
           debugPrint('  Field: $key = $value');
         });
-        debugPrint('  File attached: ${config.csvFileBytes != null || (config.csvFilePath != null && config.csvFilePath!.isNotEmpty)}');
+        debugPrint(
+          '  File attached: ${config.csvFileBytes != null || (config.csvFilePath != null && config.csvFilePath!.isNotEmpty)}',
+        );
         debugPrint('  File name: ${config.csvFileName ?? "consumption.csv"}');
-        debugPrint('============================================================');
+        debugPrint(
+          '============================================================',
+        );
 
-        if (config.manualMeterValues != null && config.manualMeterValues!.isNotEmpty) {
-          final List<Map<String, String>> missingValues = config.manualMeterValues!.entries
+        if (config.manualMeterValues != null &&
+            config.manualMeterValues!.isNotEmpty) {
+          final List<Map<String, String>> missingValues = config
+              .manualMeterValues!
+              .entries
               .map((e) => {'date': e.key, 'meter_value': e.value})
               .toList();
           request.fields['missing_values'] = jsonEncode(missingValues);
 
           debugPrint('  Missing Values (${missingValues.length} entries):');
           for (final mv in missingValues) {
-            debugPrint('    date: ${mv['date']}, meter_value: ${mv['meter_value']}');
+            debugPrint(
+              '    date: ${mv['date']}, meter_value: ${mv['meter_value']}',
+            );
           }
         } else {
           debugPrint('  Missing Values: none');
@@ -150,12 +165,14 @@ class ApiService {
         if (config.csvFileBytes != null) {
           request.files.add(
             http.MultipartFile.fromBytes(
-              'file', 
-              config.csvFileBytes as Uint8List, 
-              filename: config.csvFileName ?? 'consumption.csv'
+              'file',
+              config.csvFileBytes as Uint8List,
+              filename: config.csvFileName ?? 'consumption.csv',
             ),
           );
-        } else if (config.csvFilePath != null && config.csvFilePath!.isNotEmpty && !kIsWeb) {
+        } else if (config.csvFilePath != null &&
+            config.csvFilePath!.isNotEmpty &&
+            !kIsWeb) {
           request.files.add(
             await http.MultipartFile.fromPath(
               'file',
@@ -164,19 +181,25 @@ class ApiService {
             ),
           );
         } else {
-          throw Exception('CSV file is missing. Please go back and upload it again.');
+          throw Exception(
+            'CSV file is missing. Please go back and upload it again.',
+          );
         }
 
         final streamedResponse = await request.send().timeout(
-          const Duration(seconds: 15),
+          const Duration(seconds: 120),
         );
         final response = await http.Response.fromStream(streamedResponse);
 
         // ---- DEBUG: Log the full API response ----
-        debugPrint('================ SUBMIT PREDICTION RESPONSE ================');
+        debugPrint(
+          '================ SUBMIT PREDICTION RESPONSE ================',
+        );
         debugPrint('Status Code: ${response.statusCode}');
         debugPrint('Response Body: ${response.body}');
-        debugPrint('=============================================================');
+        debugPrint(
+          '=============================================================',
+        );
 
         if (response.statusCode == 200) {
           return jsonDecode(response.body) as Map<String, dynamic>;
@@ -194,7 +217,9 @@ class ApiService {
         }
       } catch (e) {
         lastError = e;
-        debugPrint('ApiService submitPrediction connection attempt on $baseUrl failed: $e');
+        debugPrint(
+          'ApiService submitPrediction connection attempt on $baseUrl failed: $e',
+        );
         if (e.toString().contains('CSV file is missing')) {
           rethrow;
         }

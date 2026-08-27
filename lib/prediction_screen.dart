@@ -46,9 +46,23 @@ class _PredictionScreenState extends State<PredictionScreen> {
   @override
   void initState() {
     super.initState();
-    _tabs = ['NEXT DAY', 'NEXT WEEK', 'NEXT MONTH'];
-    if (widget.durationMonths >= 9) {
-      _tabs.add('NEXT QUARTER');
+    
+    if (widget.predictionData != null) {
+      _tabs = [];
+      if (widget.predictionData!['next_day_prediction'] != null) _tabs.add('NEXT DAY');
+      if (widget.predictionData!['next_week_prediction'] != null) _tabs.add('NEXT WEEK');
+      if (widget.predictionData!['next_month_prediction'] != null) _tabs.add('NEXT MONTH');
+      if (widget.predictionData!['next_quarter_prediction'] != null) _tabs.add('NEXT QUARTER');
+      
+      // Fallback if all are null (should not happen, but safe)
+      if (_tabs.isEmpty) {
+        _tabs = ['NEXT DAY', 'NEXT WEEK', 'NEXT MONTH'];
+      }
+    } else {
+      _tabs = ['NEXT DAY', 'NEXT WEEK', 'NEXT MONTH'];
+      if (widget.durationMonths >= 9) {
+        _tabs.add('NEXT QUARTER');
+      }
     }
   }
 

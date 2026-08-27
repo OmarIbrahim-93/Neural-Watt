@@ -374,6 +374,30 @@ def convert_to_daily_data(csv_file_path: str, duration_months: int, missing_valu
     return daily_csv
 
 # ============================================================
+def calc_consumption(csv_path: str):
+    """
+    Calculates the difference between 2 consecutive values and replaces the column with 'consumption'.
+    """
+    df = pd.read_csv(csv_path)
+    if len(df.columns) >= 2:
+        val_col = df.columns[1]
+        if val_col.lower() != "consumption":
+            df["consumption"] = pd.to_numeric(df[val_col], errors="coerce").diff()
+            df = df.dropna(subset=["consumption"])
+            df = df[df["consumption"] >= 0]
+            df = df.drop(columns=[val_col])
+            # Move 'consumption' to the 2nd column
+            cols = list(df.columns)
+            cols.remove("consumption")
+            cols.insert(1, "consumption")
+            df = df[cols]
+            df.to_csv(csv_path, index=False)
+            
+    return csv_path
+
+
+
+# ============================================================
 # ENDPOINTS
 # ============================================================
 @app.post("/api/predict")
@@ -395,6 +419,9 @@ async def predict_consumption(
             content = await file.read()
             tmp.write(content)
             tmp_path = tmp.name
+            
+        # 1.5 Calculate interval consumption and name column "consumption"
+        calc_consumption(tmp_path)
 
         # 2. Parse missing values from the user (if any)
         # Expected format: [{"date": "2025-01-15", "meter_value": "42.5"}, ...]
@@ -408,12 +435,11 @@ async def predict_consumption(
         # 3. Convert to daily data — missing values are applied inside
         daily_csv = convert_to_daily_data(tmp_path, duration_months, missing_values=parsed_missing)
 
+        consumption_csv = calc_consumption(tmp_path)
+
         # 3.5 Perform Analytics
         from Analytics import Analytics
         analytics_results, _ = Analytics(daily_csv, resource_type, environment_type, facility_subtype)
-
-        # Clean up temp file
-        os.remove(tmp_path)
 
         # 4. Route to the appropriate resource logic
         resource_type_lower = resource_type.lower()
@@ -425,7 +451,7 @@ async def predict_consumption(
         elif resource_type_lower == "electricity":
             from electricity_consumption import process_electricity_consumption
             prediction_result = process_electricity_consumption(
-                daily_csv, environment_type, facility_subtype, holiday_usage, holiday_days, duration_months, data_handling_method
+                consumption_csv, environment_type, facility_subtype, holiday_usage, holiday_days, duration_months, data_handling_method, tmp_path
             )
         elif resource_type_lower == "gas":
             from gas_consumption import process_gas_consumption
@@ -460,7 +486,7 @@ async def predict_consumption(
         from LLM_Advices import generate_energy_advice
         llm_advices = generate_energy_advice(facility_data)
 
-        return {
+        response_data = {
             "status": "success",
             "message": "Prediction processed successfully.",
             "total_days": len(daily_csv),
@@ -478,11 +504,26 @@ async def predict_consumption(
                 "facility_subtype": facility_subtype,
                 "holiday_usage": holiday_usage,
                 "holiday_days": holiday_days,
+                "duration_months": duration_months,
                 "data_handling_method": data_handling_method
             }
         }
+
+        print("\n" + "="*60)
+        print("=== RESPONSE FROM NEURAL_WATT_MAIN.PY ===")
+        import pprint
+        pprint.pprint(response_data)
+        print("="*60 + "\n")
+
+        return response_data
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
+    finally:
+        try:
+            if 'tmp_path' in locals() and os.path.exists(tmp_path):
+                os.remove(tmp_path)
+        except:
+            pass
 
 @app.get("/")
 def root():
