@@ -70,8 +70,8 @@ def waste_electricity_house(total_consumption, facility_subtype, months):
     
     if total_consumption > limit:
         waste_amt = total_consumption - limit
-        waste_amount = round(waste_amt, 2)
-        waste_percentage = round((waste_amt / limit) * 100, 2)
+        waste_amount = round(waste_amt / 60, 2)
+        waste_percentage = round((waste_amt / (limit * 60)) * 100, 2)
         return waste_amount, waste_percentage
         
     return None, None
@@ -87,7 +87,7 @@ def waste_gas_house(total_consumption, facility_subtype, months):
     
     if total_consumption > limit:
         waste_amt = total_consumption - limit
-        waste_amount = round(waste_amt, 2)
+        waste_amount = int(waste_amt)
         waste_percentage = round((waste_amt / limit) * 100, 2)
         return waste_amount, waste_percentage
         
@@ -173,8 +173,13 @@ def Analytics(df: pd.DataFrame, source_type: str, environment_type: str = "", fa
             
         total_consumption = interval_df['consumption'].sum()
         days_in_interval = len(interval_df)
-        avg_daily = total_consumption / days_in_interval if days_in_interval > 0 else 0
-        
+        avg_daily = (
+            int(round(total_consumption / days_in_interval))
+            if source_type == 'gas' and days_in_interval > 0
+            else total_consumption / days_in_interval
+            if days_in_interval > 0
+            else 0
+        )
         interval_df['month_year'] = interval_df[date_col].dt.to_period('M').astype(str)
         monthly_costs = interval_df.groupby('month_year')['consumption_cost'].sum().to_dict()
         monthly_consumption = interval_df.groupby('month_year')['consumption'].sum().to_dict()
@@ -189,11 +194,19 @@ def Analytics(df: pd.DataFrame, source_type: str, environment_type: str = "", fa
         elif environment_type.lower() == "house" and source_type == "gas":
             waste_amount, waste_percentage = waste_gas_house(total_consumption, facility_subtype, months)
         
+        display_total_consumption = (
+            int(round(total_consumption))
+            if source_type == 'gas'
+            else total_consumption / 60
+            if source_type == 'electricity'
+            else total_consumption
+        )
+        
         analysis_results[f"last_{months}_months"] = {
-            "total_consumption": round(total_consumption, 2),
+            "total_consumption": round(display_total_consumption, 2),
             "average_daily_consumption": round(avg_daily, 2),
             "monthly_costs": {k: round(v, 2) for k, v in monthly_costs.items()},
-            "monthly_consumption": {k: round(v, 2) for k, v in monthly_consumption.items()},
+            "monthly_consumption": {k: round(v / 60, 2) if source_type == 'electricity' else round(v, 2) for k, v in monthly_consumption.items()},
             "waste_amount": waste_amount,
             "waste_percentage": waste_percentage
         }

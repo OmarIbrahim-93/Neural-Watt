@@ -268,6 +268,47 @@ def test_model(model, scaler, X, y):
     return y_actual, y_pred, mae, rmse, r2
 
 
+def electric_waste(next_day, next_week, next_month, next_quarter, num_persons):
+    try:
+        num_persons = int(str(num_persons))
+    except (ValueError, TypeError):
+        num_persons = 1
+        
+    thresholds = {
+        'day': 6,
+        'week': 42,
+        'month': 180,
+        'quarter': 540
+    }
+    
+    def calc_waste(prediction, period):
+        if prediction is None:
+            return None, None
+            
+        threshold = num_persons * thresholds[period]
+        if prediction > threshold:
+            waste_amt = prediction - threshold
+            waste_percentage = (waste_amt / threshold) * 100
+            return round(waste_amt, 2), round(waste_percentage, 2)
+        return None, None
+
+    waste_day_amt, waste_day_pct = calc_waste(next_day, 'day')
+    waste_week_amt, waste_week_pct = calc_waste(next_week, 'week')
+    waste_month_amt, waste_month_pct = calc_waste(next_month, 'month')
+    waste_quarter_amt, waste_quarter_pct = calc_waste(next_quarter, 'quarter')
+    
+    return {
+        'waste_day': waste_day_amt,
+        'waste_day_percentage': waste_day_pct,
+        'waste_week': waste_week_amt,
+        'waste_week_percentage': waste_week_pct,
+        'waste_month': waste_month_amt,
+        'waste_month_percentage': waste_month_pct,
+        'waste_quarter': waste_quarter_amt,
+        'waste_quarter_percentage': waste_quarter_pct
+    }
+
+
 def process_house_electricity(df, facility_subtype, holiday_usage, holiday_days, duration_months, data_handling_method, csv_path=None):
     """
     Processes house electricity consumption data and returns day, week, month, and quarter predictions.
@@ -291,12 +332,12 @@ def process_house_electricity(df, facility_subtype, holiday_usage, holiday_days,
             # 1. Next Day
             daily_agg = df_agg[["Predicted"]].resample("D").sum().dropna()
             if len(daily_agg) > 0:
-                result_dict["next_day"] = int(daily_agg["Predicted"].iloc[-1])
+                result_dict["next_day"] = int(daily_agg["Predicted"].iloc[-1]) / 60
                 
             # 2. Next Week
             weekly_agg = df_agg[["Predicted"]].resample("W").sum().dropna()
             if len(weekly_agg) > 0:
-                result_dict["next_week"] = int(weekly_agg["Predicted"].iloc[-1])
+                result_dict["next_week"] = int(weekly_agg["Predicted"].iloc[-1]) / 60
                 
             # 3. Next Month
             try:
@@ -304,7 +345,7 @@ def process_house_electricity(df, facility_subtype, holiday_usage, holiday_days,
             except Exception:
                 monthly_agg = df_agg[["Predicted"]].resample("M").sum().dropna()
             if len(monthly_agg) > 0:
-                result_dict["next_month"] = int(monthly_agg["Predicted"].iloc[-1])
+                result_dict["next_month"] = int(monthly_agg["Predicted"].iloc[-1]) / 60
                 
             # 4. Next Quarter
             try:
@@ -312,7 +353,15 @@ def process_house_electricity(df, facility_subtype, holiday_usage, holiday_days,
             except Exception:
                 quarterly_agg = df_agg[["Predicted"]].resample("Q").sum().dropna()
             if len(quarterly_agg) > 0:
-                result_dict["next_quarter"] = int(quarterly_agg["Predicted"].iloc[-1])
+                result_dict["next_quarter"] = int(quarterly_agg["Predicted"].iloc[-1]) / 60
+                
+            result_dict["waste"] = electric_waste(
+                result_dict.get("next_day"),
+                result_dict.get("next_week"),
+                result_dict.get("next_month"),
+                result_dict.get("next_quarter"),
+                facility_subtype
+            )
                 
         except Exception as e:
             print(f"Warning: Failed to run house electricity resnet model: {e}")

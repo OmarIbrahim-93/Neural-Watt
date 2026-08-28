@@ -46,14 +46,18 @@ class _PredictionScreenState extends State<PredictionScreen> {
   @override
   void initState() {
     super.initState();
-    
+
     if (widget.predictionData != null) {
       _tabs = [];
-      if (widget.predictionData!['next_day_prediction'] != null) _tabs.add('NEXT DAY');
-      if (widget.predictionData!['next_week_prediction'] != null) _tabs.add('NEXT WEEK');
-      if (widget.predictionData!['next_month_prediction'] != null) _tabs.add('NEXT MONTH');
-      if (widget.predictionData!['next_quarter_prediction'] != null) _tabs.add('NEXT QUARTER');
-      
+      if (widget.predictionData!['next_day_prediction'] != null)
+        _tabs.add('NEXT DAY');
+      if (widget.predictionData!['next_week_prediction'] != null)
+        _tabs.add('NEXT WEEK');
+      if (widget.predictionData!['next_month_prediction'] != null)
+        _tabs.add('NEXT MONTH');
+      if (widget.predictionData!['next_quarter_prediction'] != null)
+        _tabs.add('NEXT QUARTER');
+
       // Fallback if all are null (should not happen, but safe)
       if (_tabs.isEmpty) {
         _tabs = ['NEXT DAY', 'NEXT WEEK', 'NEXT MONTH'];
@@ -284,24 +288,51 @@ class _PredictionScreenState extends State<PredictionScreen> {
                               cardBorderColor,
                             ),
                             const SizedBox(height: 16),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: _buildEstWasteCard(
-                                    colors,
-                                    cardBgColor,
-                                    cardBorderColor,
-                                  ),
-                                ),
-                                const SizedBox(width: 16),
-                                Expanded(
-                                  child: _buildWasteRatioCard(
-                                    colors,
-                                    cardBgColor,
-                                    cardBorderColor,
-                                  ),
-                                ),
-                              ],
+                            LayoutBuilder(
+                              builder: (context, constraints) {
+                                if (constraints.maxWidth < 400) {
+                                  return Column(
+                                    children: [
+                                      SizedBox(
+                                        width: double.infinity,
+                                        child: _buildEstWasteCard(
+                                          colors,
+                                          cardBgColor,
+                                          cardBorderColor,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 16),
+                                      SizedBox(
+                                        width: double.infinity,
+                                        child: _buildWasteRatioCard(
+                                          colors,
+                                          cardBgColor,
+                                          cardBorderColor,
+                                        ),
+                                      ),
+                                    ],
+                                  );
+                                }
+                                return Row(
+                                  children: [
+                                    Expanded(
+                                      child: _buildEstWasteCard(
+                                        colors,
+                                        cardBgColor,
+                                        cardBorderColor,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 16),
+                                    Expanded(
+                                      child: _buildWasteRatioCard(
+                                        colors,
+                                        cardBgColor,
+                                        cardBorderColor,
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              },
                             ),
                           ],
                         ),
@@ -326,24 +357,51 @@ class _PredictionScreenState extends State<PredictionScreen> {
                     cardBorderColor,
                   ),
                   const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildEstWasteCard(
-                          colors,
-                          cardBgColor,
-                          cardBorderColor,
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: _buildWasteRatioCard(
-                          colors,
-                          cardBgColor,
-                          cardBorderColor,
-                        ),
-                      ),
-                    ],
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      if (constraints.maxWidth < 400) {
+                        return Column(
+                          children: [
+                            SizedBox(
+                              width: double.infinity,
+                              child: _buildEstWasteCard(
+                                colors,
+                                cardBgColor,
+                                cardBorderColor,
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            SizedBox(
+                              width: double.infinity,
+                              child: _buildWasteRatioCard(
+                                colors,
+                                cardBgColor,
+                                cardBorderColor,
+                              ),
+                            ),
+                          ],
+                        );
+                      }
+                      return Row(
+                        children: [
+                          Expanded(
+                            child: _buildEstWasteCard(
+                              colors,
+                              cardBgColor,
+                              cardBorderColor,
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: _buildWasteRatioCard(
+                              colors,
+                              cardBgColor,
+                              cardBorderColor,
+                            ),
+                          ),
+                        ],
+                      );
+                    },
                   ),
                   if (_selectedTabIndex != 0) ...[
                     const SizedBox(height: 16),
@@ -450,36 +508,6 @@ class _PredictionScreenState extends State<PredictionScreen> {
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF064E3B).withValues(alpha: 0.5),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.trending_down,
-                      color: Color(0xFF34D399),
-                      size: 16,
-                    ),
-                    SizedBox(width: 4),
-                    Text(
-                      '-4.2% vs avg',
-                      style: TextStyle(
-                        color: Color(0xFF34D399),
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
             ],
           ),
           Positioned(
@@ -525,29 +553,33 @@ class _PredictionScreenState extends State<PredictionScreen> {
             ],
           ),
           const SizedBox(height: 16),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.baseline,
-            textBaseline: TextBaseline.alphabetic,
-            children: [
-              Text(
-                _getWaste(),
-                style: TextStyle(
-                  fontSize: 40,
-                  fontWeight: FontWeight.bold,
-                  color: colors.textPrimary,
-                  height: 1.0,
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.baseline,
+              textBaseline: TextBaseline.alphabetic,
+              children: [
+                Text(
+                  _getWaste(),
+                  style: TextStyle(
+                    fontSize: 40,
+                    fontWeight: FontWeight.bold,
+                    color: colors.textPrimary,
+                    height: 1.0,
+                  ),
                 ),
-              ),
-              const SizedBox(width: 4),
-              Text(
-                _getUnit(),
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: colors.textSecondary,
+                const SizedBox(width: 4),
+                Text(
+                  _getUnit(),
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: colors.textSecondary,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ],
       ),
@@ -575,13 +607,17 @@ class _PredictionScreenState extends State<PredictionScreen> {
             ),
           ),
           const SizedBox(height: 12),
-          Text(
-            _getWasteRatio(),
-            style: const TextStyle(
-              fontSize: 40,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFFFBBF24),
-              height: 1.0,
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(
+              '${_getWasteRatio()} ',
+              style: const TextStyle(
+                fontSize: 40,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFFFBBF24),
+                height: 1.0,
+              ),
             ),
           ),
           const SizedBox(height: 16),
@@ -732,7 +768,7 @@ class _PredictionScreenState extends State<PredictionScreen> {
       return const SizedBox.shrink();
     }
     final advices = data['llm_advices'] as Map<String, dynamic>;
-    
+
     String key;
     switch (_tabs[_selectedTabIndex]) {
       case 'NEXT DAY':
@@ -768,7 +804,11 @@ class _PredictionScreenState extends State<PredictionScreen> {
         children: [
           Row(
             children: [
-              const Icon(Icons.tips_and_updates_outlined, size: 18, color: Color(0xFFFBBF24)),
+              const Icon(
+                Icons.tips_and_updates_outlined,
+                size: 18,
+                color: Color(0xFFFBBF24),
+              ),
               const SizedBox(width: 8),
               Text(
                 'AI EFFICIENCY ADVICE',
@@ -782,32 +822,34 @@ class _PredictionScreenState extends State<PredictionScreen> {
             ],
           ),
           const SizedBox(height: 16),
-          ...bulletPoints.map((point) => Padding(
-                padding: const EdgeInsets.only(bottom: 8.0),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '• ',
+          ...bulletPoints.map(
+            (point) => Padding(
+              padding: const EdgeInsets.only(bottom: 8.0),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '• ',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: colors.textPrimary,
+                      height: 1.2,
+                    ),
+                  ),
+                  Expanded(
+                    child: Text(
+                      point.toString(),
                       style: TextStyle(
-                        fontSize: 16,
+                        fontSize: 14,
                         color: colors.textPrimary,
-                        height: 1.2,
+                        height: 1.4,
                       ),
                     ),
-                    Expanded(
-                      child: Text(
-                        point.toString(),
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: colors.textPrimary,
-                          height: 1.4,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              )),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );

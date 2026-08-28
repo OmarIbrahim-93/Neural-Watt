@@ -434,6 +434,7 @@ async def predict_consumption(
 
         # 3. Convert to daily data — missing values are applied inside
         daily_csv = convert_to_daily_data(tmp_path, duration_months, missing_values=parsed_missing)
+        daily_csv.to_csv("Actual_daily_consumption.csv", index=False)
 
         consumption_csv = calc_consumption(tmp_path)
 
@@ -456,7 +457,7 @@ async def predict_consumption(
         elif resource_type_lower == "gas":
             from gas_consumption import process_gas_consumption
             prediction_result = process_gas_consumption(
-                daily_csv, environment_type, facility_subtype, holiday_usage, holiday_days, duration_months, data_handling_method
+                file, environment_type, facility_subtype, holiday_usage, holiday_days, duration_months, data_handling_method, tmp_path
             )
         else:
             raise ValueError(f"Unknown resource type: {resource_type}")
