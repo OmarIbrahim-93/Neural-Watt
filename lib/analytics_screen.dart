@@ -17,7 +17,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
   int _selectedPeriodMonths = 12; // Default to 12
 
   Map<String, dynamic>? _analyticsData;
-  final List<int> _availablePeriods = [12, 6, 3, 1];
+  List<int> _availablePeriods = [12, 6, 3, 1];
 
   @override
   void initState() {
@@ -161,31 +161,34 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
             if (periodData['waste_amount'] != null &&
                 periodData['waste_amount'] > 0) ...[
               const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildStatCard(
-                      colors: colors,
-                      icon: Icons.warning_amber_rounded,
-                      iconColor: Colors.redAccent,
-                      title: 'WASTE AMOUNT',
-                      value: formatter.format(periodData['waste_amount']),
-                      unit: unit,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _buildStatCard(
-                      colors: colors,
-                      icon: Icons.pie_chart_outline,
-                      iconColor: Colors.redAccent,
-                      title: 'WASTE %',
-                      value: '${periodData['waste_percentage']}',
-                      unit: '%',
-                    ),
-                  ),
-                ],
+              _buildStatCard(
+                colors: colors,
+                icon: Icons.warning_amber_rounded,
+                iconColor: Colors.redAccent,
+                title: 'WASTE AMOUNT',
+                value: formatter.format(periodData['waste_amount']),
+                unit: unit,
               ),
+              const SizedBox(height: 16),
+              _buildStatCard(
+                colors: colors,
+                icon: Icons.pie_chart_outline,
+                iconColor: Colors.redAccent,
+                title: 'WASTE %',
+                value: '${periodData['waste_percentage']}',
+                unit: '%',
+              ),
+              if (periodData['waste_cost'] != null) ...[
+                const SizedBox(height: 16),
+                _buildStatCard(
+                  colors: colors,
+                  icon: Icons.attach_money,
+                  iconColor: Colors.green,
+                  title: 'WASTE COST',
+                  value: formatter.format(periodData['waste_cost']),
+                  unit: 'LE',
+                ),
+              ],
             ],
 
             const SizedBox(height: 16),
@@ -616,7 +619,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                 Expanded(
                   flex: 2,
                   child: Text(
-                    'Cost(\$)',
+                    'Cost(LE)',
                     textAlign: TextAlign.right,
                     style: _tableHeaderStyle(colors),
                   ),
@@ -655,7 +658,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
               final cost = monthlyCosts[monthStr] as num? ?? 0;
 
               final formatCons = NumberFormat('#,##0.00').format(consumption);
-              final formatCost = '\$${NumberFormat('#,##0.00').format(cost)}';
+              final formatCost = '${NumberFormat('#,##0.00').format(cost)} LE';
 
               return Column(
                 children: [

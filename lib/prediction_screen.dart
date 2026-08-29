@@ -149,6 +149,10 @@ class _PredictionScreenState extends State<PredictionScreen> {
     }
   }
 
+  bool _hasWaste() {
+    return _getWaste() != '0';
+  }
+
   double _getCalculatedWasteRatio() {
     final data = widget.predictionData;
     if (data != null && data['waste'] != null) {
@@ -227,6 +231,24 @@ class _PredictionScreenState extends State<PredictionScreen> {
     return 'm³';
   }
 
+  IconData _getResourceIcon() {
+    if (widget.resourceType.toLowerCase() == 'water') {
+      return Icons.water_drop;
+    } else if (widget.resourceType.toLowerCase() == 'gas') {
+      return Icons.local_fire_department;
+    }
+    return Icons.bolt;
+  }
+
+  Color _getResourceColor(AppColors colors) {
+    if (widget.resourceType.toLowerCase() == 'water') {
+      return Colors.blue;
+    } else if (widget.resourceType.toLowerCase() == 'gas') {
+      return Colors.orange;
+    }
+    return colors.accentBlue;
+  }
+
   @override
   Widget build(BuildContext context) {
     final colors = AppColors.of(context);
@@ -287,53 +309,82 @@ class _PredictionScreenState extends State<PredictionScreen> {
                               cardBgColor,
                               cardBorderColor,
                             ),
-                            const SizedBox(height: 16),
-                            LayoutBuilder(
-                              builder: (context, constraints) {
-                                if (constraints.maxWidth < 400) {
+                            if (_hasWaste()) ...[
+                              const SizedBox(height: 16),
+                              LayoutBuilder(
+                                builder: (context, constraints) {
+                                  if (constraints.maxWidth < 400) {
+                                    return Column(
+                                      children: [
+                                        SizedBox(
+                                          width: double.infinity,
+                                          child: _buildEstWasteCard(
+                                            colors,
+                                            cardBgColor,
+                                            cardBorderColor,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 16),
+                                        SizedBox(
+                                          width: double.infinity,
+                                          child: _buildWasteRatioCard(
+                                            colors,
+                                            cardBgColor,
+                                            cardBorderColor,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 16),
+                                        SizedBox(
+                                          width: double.infinity,
+                                          child: _buildWasteCostCard(
+                                            colors,
+                                            cardBgColor,
+                                            cardBorderColor,
+                                          ),
+                                        ),
+                                      ],
+                                    );
+                                  }
                                   return Column(
                                     children: [
-                                      SizedBox(
-                                        width: double.infinity,
-                                        child: _buildEstWasteCard(
-                                          colors,
-                                          cardBgColor,
-                                          cardBorderColor,
-                                        ),
+                                      Row(
+                                        children: [
+                                          Expanded(
+                                            child: _buildEstWasteCard(
+                                              colors,
+                                              cardBgColor,
+                                              cardBorderColor,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 16),
+                                          Expanded(
+                                            child: _buildWasteRatioCard(
+                                              colors,
+                                              cardBgColor,
+                                              cardBorderColor,
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                       const SizedBox(height: 16),
-                                      SizedBox(
-                                        width: double.infinity,
-                                        child: _buildWasteRatioCard(
-                                          colors,
-                                          cardBgColor,
-                                          cardBorderColor,
-                                        ),
+                                      Row(
+                                        children: [
+                                          Expanded(
+                                            child: _buildWasteCostCard(
+                                              colors,
+                                              cardBgColor,
+                                              cardBorderColor,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 16),
+                                          const Spacer(),
+                                        ],
                                       ),
                                     ],
                                   );
-                                }
-                                return Row(
-                                  children: [
-                                    Expanded(
-                                      child: _buildEstWasteCard(
-                                        colors,
-                                        cardBgColor,
-                                        cardBorderColor,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 16),
-                                    Expanded(
-                                      child: _buildWasteRatioCard(
-                                        colors,
-                                        cardBgColor,
-                                        cardBorderColor,
-                                      ),
-                                    ),
-                                  ],
-                                );
-                              },
-                            ),
+                                },
+                              ),
+                            ],
                           ],
                         ),
                       ),
@@ -356,53 +407,82 @@ class _PredictionScreenState extends State<PredictionScreen> {
                     cardBgColor,
                     cardBorderColor,
                   ),
-                  const SizedBox(height: 16),
-                  LayoutBuilder(
-                    builder: (context, constraints) {
-                      if (constraints.maxWidth < 400) {
+                  if (_hasWaste()) ...[
+                    const SizedBox(height: 16),
+                    LayoutBuilder(
+                      builder: (context, constraints) {
+                        if (constraints.maxWidth < 400) {
+                          return Column(
+                            children: [
+                              SizedBox(
+                                width: double.infinity,
+                                child: _buildEstWasteCard(
+                                  colors,
+                                  cardBgColor,
+                                  cardBorderColor,
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              SizedBox(
+                                width: double.infinity,
+                                child: _buildWasteRatioCard(
+                                  colors,
+                                  cardBgColor,
+                                  cardBorderColor,
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              SizedBox(
+                                width: double.infinity,
+                                child: _buildWasteCostCard(
+                                  colors,
+                                  cardBgColor,
+                                  cardBorderColor,
+                                ),
+                              ),
+                            ],
+                          );
+                        }
                         return Column(
                           children: [
-                            SizedBox(
-                              width: double.infinity,
-                              child: _buildEstWasteCard(
-                                colors,
-                                cardBgColor,
-                                cardBorderColor,
-                              ),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: _buildEstWasteCard(
+                                    colors,
+                                    cardBgColor,
+                                    cardBorderColor,
+                                  ),
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: _buildWasteRatioCard(
+                                    colors,
+                                    cardBgColor,
+                                    cardBorderColor,
+                                  ),
+                                ),
+                              ],
                             ),
                             const SizedBox(height: 16),
-                            SizedBox(
-                              width: double.infinity,
-                              child: _buildWasteRatioCard(
-                                colors,
-                                cardBgColor,
-                                cardBorderColor,
-                              ),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: _buildWasteCostCard(
+                                    colors,
+                                    cardBgColor,
+                                    cardBorderColor,
+                                  ),
+                                ),
+                                const SizedBox(width: 16),
+                                const Spacer(),
+                              ],
                             ),
                           ],
                         );
-                      }
-                      return Row(
-                        children: [
-                          Expanded(
-                            child: _buildEstWasteCard(
-                              colors,
-                              cardBgColor,
-                              cardBorderColor,
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: _buildWasteRatioCard(
-                              colors,
-                              cardBgColor,
-                              cardBorderColor,
-                            ),
-                          ),
-                        ],
-                      );
-                    },
-                  ),
+                      },
+                    ),
+                  ],
                   if (_selectedTabIndex != 0) ...[
                     const SizedBox(height: 16),
                     _buildConsumptionForecastCard(
@@ -474,14 +554,24 @@ class _PredictionScreenState extends State<PredictionScreen> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'PREDICTED CONSUMPTION',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                  color: colors.textSecondary,
-                  letterSpacing: 0.5,
-                ),
+              Row(
+                children: [
+                  Icon(
+                    _getResourceIcon(),
+                    size: 16,
+                    color: _getResourceColor(colors),
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    'PREDICTED CONSUMPTION',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: colors.textSecondary,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 12),
               Row(
@@ -539,7 +629,11 @@ class _PredictionScreenState extends State<PredictionScreen> {
         children: [
           Row(
             children: [
-              Icon(Icons.delete_outline, size: 16, color: colors.textSecondary),
+              Icon(
+                Icons.warning_amber_rounded,
+                size: 16,
+                color: Colors.redAccent,
+              ),
               const SizedBox(width: 6),
               Text(
                 'EST. WASTE',
@@ -597,14 +691,20 @@ class _PredictionScreenState extends State<PredictionScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'WASTE RATIO',
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.bold,
-              color: colors.textSecondary,
-              letterSpacing: 0.5,
-            ),
+          Row(
+            children: [
+              Icon(Icons.pie_chart_outline, size: 16, color: Colors.redAccent),
+              const SizedBox(width: 6),
+              Text(
+                'WASTE RATIO',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                  color: colors.textSecondary,
+                  letterSpacing: 0.5,
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 12),
           FittedBox(
@@ -643,6 +743,104 @@ class _PredictionScreenState extends State<PredictionScreen> {
                 ),
               ),
             ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  double _calculateWastedMoney() {
+    final data = widget.predictionData;
+    if (data == null) {
+      switch (_tabs[_selectedTabIndex]) {
+        case 'NEXT DAY':
+          return 3.12;
+        case 'NEXT WEEK':
+          return 23.25;
+        case 'NEXT MONTH':
+          return 178.50;
+        case 'NEXT QUARTER':
+          return 645.00;
+        default:
+          return 0.0;
+      }
+    }
+
+    if (data['waste'] == null) return 0.0;
+
+    final wasteData = data['waste'] as Map<String, dynamic>;
+    
+    switch (_tabs[_selectedTabIndex]) {
+      case 'NEXT DAY':
+        return (wasteData['waste_cost_day'] as num?)?.toDouble() ?? 0.0;
+      case 'NEXT WEEK':
+        return (wasteData['waste_cost_week'] as num?)?.toDouble() ?? 0.0;
+      case 'NEXT MONTH':
+        return (wasteData['waste_cost_month'] as num?)?.toDouble() ?? 0.0;
+      case 'NEXT QUARTER':
+        return (wasteData['waste_cost_quarter'] as num?)?.toDouble() ?? 0.0;
+      default:
+        return 0.0;
+    }
+  }
+
+  Widget _buildWasteCostCard(AppColors colors, Color bg, Color border) {
+    double cost = _calculateWastedMoney();
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.attach_money, size: 16, color: Colors.green),
+              const SizedBox(width: 6),
+              Text(
+                'WASTE COST',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                  color: colors.textSecondary,
+                  letterSpacing: 0.5,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.baseline,
+              textBaseline: TextBaseline.alphabetic,
+              children: [
+                const Icon(Icons.arrow_downward, color: Colors.redAccent, size: 28),
+                const SizedBox(width: 4),
+                Text(
+                  cost.toStringAsFixed(2),
+                  style: TextStyle(
+                    fontSize: 40,
+                    fontWeight: FontWeight.bold,
+                    color: colors.textPrimary,
+                    height: 1.0,
+                  ),
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  'LE',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: colors.textSecondary,
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),

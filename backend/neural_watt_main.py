@@ -465,6 +465,21 @@ async def predict_consumption(
         if not isinstance(prediction_result, dict):
             prediction_result = {}
             
+        # Add waste cost logic
+        waste_dict = prediction_result.get("waste")
+        if isinstance(waste_dict, dict):
+            from Analytics import process_row_cost_house
+            def get_cost(period_pred, waste_amt, period_str):
+                if not waste_amt or not period_pred:
+                    return 0.0
+                cat, rate, total_cost = process_row_cost_house(period_pred, resource_type_lower, period=period_str)
+                return round(waste_amt * rate, 2)
+
+            waste_dict["waste_cost_day"] = get_cost(prediction_result.get("next_day"), waste_dict.get("waste_day"), "daily")
+            waste_dict["waste_cost_week"] = get_cost(prediction_result.get("next_week"), waste_dict.get("waste_week"), "weekly")
+            waste_dict["waste_cost_month"] = get_cost(prediction_result.get("next_month"), waste_dict.get("waste_month"), "monthly")
+            waste_dict["waste_cost_quarter"] = get_cost(prediction_result.get("next_quarter"), waste_dict.get("waste_quarter"), "quarterly")
+            
         actual_val = analytics_results.get("last_1_months", {}).get("total_consumption", round(float(daily_csv["consumption"].sum()), 2))
         waste_amt = prediction_result.get("waste", {}).get("waste_month", "N/A")
         

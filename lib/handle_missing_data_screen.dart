@@ -74,7 +74,7 @@ class _HandleMissingDataScreenState extends State<HandleMissingDataScreen> {
                         ),
                         const SizedBox(height: 12),
                         Text(
-                          'Handle Missing Data',
+                          'Zero Consumption Detected',
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: 28,
@@ -84,7 +84,7 @@ class _HandleMissingDataScreenState extends State<HandleMissingDataScreen> {
                         ),
                         const SizedBox(height: 12),
                         Text(
-                          'We detected some gaps in your historical utility data. How would you like NeuralWatt to proceed?',
+                          'We found some days with zero consumption in your uploaded data.\nAre these zeros correct, or are they missing values?',
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: 16,
@@ -101,8 +101,8 @@ class _HandleMissingDataScreenState extends State<HandleMissingDataScreen> {
                               Expanded(
                                 child: _buildOptionCard(
                                   value: 1,
-                                  title: 'Auto Estimate\nValues',
-                                  subtitle: "NeuralWatt's AI analyzes patterns, day-of-week trends, and local holidays to highly accurately fill in missing utility data gaps.",
+                                  title: 'Estimate Missing Values',
+                                  subtitle: 'Some consumption may not have been recorded. Estimate these values using historical usage patterns.',
                                   showRecommended: true,
                                   colors: colors,
                                   child: _buildAutoIllustration(colors),
@@ -112,8 +112,8 @@ class _HandleMissingDataScreenState extends State<HandleMissingDataScreen> {
                               Expanded(
                                 child: _buildOptionCard(
                                   value: 2,
-                                  title: 'Continue Without\nEstimation',
-                                  subtitle: 'Use available data only. Analytics and predictions may be less accurate due to missing historical context.',
+                                  title: 'Keep Zeros',
+                                  subtitle: 'These zero values are correct. The resource was not used or the facility was closed on these days.',
                                   isSimple: true,
                                   colors: colors,
                                 ),
@@ -124,8 +124,8 @@ class _HandleMissingDataScreenState extends State<HandleMissingDataScreen> {
                           // Option 1: Auto Estimate
                           _buildOptionCard(
                             value: 1,
-                            title: 'Auto Estimate\nValues',
-                            subtitle: "NeuralWatt's AI analyzes patterns, day-of-week trends, and local holidays to highly accurately fill in missing utility data gaps.",
+                            title: 'Estimate Missing Values',
+                            subtitle: 'Some consumption may not have been recorded. Estimate these values using historical usage patterns.',
                             showRecommended: true,
                             colors: colors,
                             child: _buildAutoIllustration(colors),
@@ -135,8 +135,8 @@ class _HandleMissingDataScreenState extends State<HandleMissingDataScreen> {
                           // Option 2: Continue Without
                           _buildOptionCard(
                             value: 2,
-                            title: 'Continue Without\nEstimation',
-                            subtitle: 'Use available data only. Analytics and predictions may be less accurate due to missing historical context.',
+                            title: 'Keep Zeros',
+                            subtitle: 'These zero values are correct. The resource was not used or the facility was closed on these days.',
                             isSimple: true,
                             colors: colors,
                           ),
@@ -154,8 +154,8 @@ class _HandleMissingDataScreenState extends State<HandleMissingDataScreen> {
                                   analysisResult: widget.analysisResult,
                                   config: widget.config,
                                   dataHandlingMethod: _selectedValue == 1 
-                                      ? 'AI Estimated' 
-                                      : 'Continue Without Estimation',
+                                      ? 'Estimate Missing Values' 
+                                      : 'Keep Zeros',
                                 ),
                               ),
                             );

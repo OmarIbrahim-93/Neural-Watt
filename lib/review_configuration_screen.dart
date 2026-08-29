@@ -473,8 +473,10 @@ class _ReviewConfigurationScreenState extends State<ReviewConfigurationScreen> {
           const SizedBox(height: 16),
           Row(
             children: [
-              Icon(Icons.auto_awesome, color: colors.textPrimary, size: 20),
-              const SizedBox(width: 8),
+              if (method == 'Estimate Missing Values') ...[
+                Icon(Icons.auto_awesome, color: colors.textPrimary, size: 20),
+                const SizedBox(width: 8),
+              ],
               Text(
                 method,
                 style: TextStyle(
@@ -487,7 +489,7 @@ class _ReviewConfigurationScreenState extends State<ReviewConfigurationScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            method == 'AI Estimated'
+            method == 'Estimate Missing Values'
                 ? 'Missing data points will be synthesized using historical patterns.'
                 : 'Using actual available data. No synthetic estimation applied.',
             style: TextStyle(

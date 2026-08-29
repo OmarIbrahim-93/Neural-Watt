@@ -40,10 +40,7 @@ class _HistoricalDataPeriodScreenState
           ),
         ),
         centerTitle: true,
-        actions: const [
-          ThemeToggleButton(),
-          SizedBox(width: 8),
-        ],
+        actions: const [ThemeToggleButton(), SizedBox(width: 8)],
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -70,7 +67,9 @@ class _HistoricalDataPeriodScreenState
                   child: LinearProgressIndicator(
                     value: 5 / 6,
                     backgroundColor: colors.accentContainer,
-                    valueColor: AlwaysStoppedAnimation<Color>(colors.accentBlue),
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      colors.accentBlue,
+                    ),
                     minHeight: 8,
                   ),
                 ),
@@ -126,7 +125,7 @@ class _HistoricalDataPeriodScreenState
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
-                        'Min 2 / Max 12',
+                        'Min 5 / Max 12',
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
@@ -142,20 +141,17 @@ class _HistoricalDataPeriodScreenState
                 LayoutBuilder(
                   builder: (context, constraints) {
                     final double cardWidth = (constraints.maxWidth - 16) / 2;
-                    return Column(
-                      children: [
-                        Wrap(
-                          spacing: 16,
-                          runSpacing: 16,
-                          children: List.generate(10, (index) {
-                            int month = index + 2;
-                            if (month == 12) return const SizedBox.shrink();
-                            return _buildMonthCard(month, width: cardWidth, colors: colors);
-                          }),
-                        ),
-                        const SizedBox(height: 16),
-                        _buildMonthCard(12, width: constraints.maxWidth, colors: colors),
-                      ],
+                    return Wrap(
+                      spacing: 16,
+                      runSpacing: 16,
+                      children: List.generate(8, (index) {
+                        int month = index + 5;
+                        return _buildMonthCard(
+                          month,
+                          width: cardWidth,
+                          colors: colors,
+                        );
+                      }),
                     );
                   },
                 ),
@@ -168,7 +164,9 @@ class _HistoricalDataPeriodScreenState
                   decoration: BoxDecoration(
                     color: colors.accentContainer,
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: colors.accentBlue.withValues(alpha: 0.3)),
+                    border: Border.all(
+                      color: colors.accentBlue.withValues(alpha: 0.3),
+                    ),
                   ),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -228,7 +226,9 @@ class _HistoricalDataPeriodScreenState
                     );
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: colors.isDark ? colors.accentBlue : Colors.black,
+                    backgroundColor: colors.isDark
+                        ? colors.accentBlue
+                        : Colors.black,
                     foregroundColor: Colors.white,
                     minimumSize: const Size.fromHeight(60),
                     shape: RoundedRectangleBorder(
@@ -259,7 +259,11 @@ class _HistoricalDataPeriodScreenState
     );
   }
 
-  Widget _buildMonthCard(int month, {required double width, required AppColors colors}) {
+  Widget _buildMonthCard(
+    int month, {
+    required double width,
+    required AppColors colors,
+  }) {
     bool isSelected = _selectedMonths == month;
     return GestureDetector(
       onTap: () {
@@ -277,14 +281,14 @@ class _HistoricalDataPeriodScreenState
               color: colors.cardBackground,
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: isSelected
-                    ? colors.accentBlue
-                    : colors.cardBorder,
+                color: isSelected ? colors.accentBlue : colors.cardBorder,
                 width: isSelected ? 2 : 1,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: colors.isDark ? Colors.black26 : Colors.black.withValues(alpha: 0.02),
+                  color: colors.isDark
+                      ? Colors.black26
+                      : Colors.black.withValues(alpha: 0.02),
                   blurRadius: 4,
                   offset: const Offset(0, 2),
                 ),
@@ -298,9 +302,7 @@ class _HistoricalDataPeriodScreenState
                   style: TextStyle(
                     fontSize: 32,
                     fontWeight: FontWeight.bold,
-                    color: isSelected
-                        ? colors.accentBlue
-                        : colors.textPrimary,
+                    color: isSelected ? colors.accentBlue : colors.textPrimary,
                   ),
                 ),
                 Text(

@@ -1,39 +1,56 @@
 import pandas as pd
 
-def process_row_cost_house(consumption, source_type):
+def process_row_cost_house(consumption, source_type, period='monthly'):
+    import pandas as pd
     if pd.isna(consumption):
         return 0, 0.0, 0.0
+
+    # Determine threshold multiplier based on the period
+    if period == 'daily':
+        multiplier = 1 / 30
+    elif period == 'weekly':
+        multiplier = 1 / 4
+    elif period == 'monthly':
+        multiplier = 1.0
+    elif period == 'quarter' or period == 'quarterly':
+        multiplier = 3.0
+    else:
+        multiplier = 1.0  # Default to monthly
+
     if source_type == 'water':
-        if consumption <= 10:
+        if consumption <= 10 * multiplier:
             return 1, 2.00, consumption * 2.00
-        elif consumption <= 20:
+        elif consumption <= 20 * multiplier:
             return 2, 3.00, consumption * 3.00
-        elif consumption <= 30:
+        elif consumption <= 30 * multiplier:
             return 3, 4.00, consumption * 4.00
         else:
             return 4, 4.50, consumption * 4.50
+
     elif source_type == 'electricity':
-        if consumption <= 50:
+        if consumption <= 50 * multiplier:
             return 1, 0.68, consumption * 0.68
-        elif consumption <= 100:
+        elif consumption <= 100 * multiplier:
             return 2, 0.78, consumption * 0.78
-        elif consumption <= 200:
+        elif consumption <= 200 * multiplier:
             return 3, 0.95, consumption * 0.95
-        elif consumption <= 350:
+        elif consumption <= 350 * multiplier:
             return 4, 1.55, consumption * 1.55
-        elif consumption <= 650:
+        elif consumption <= 650 * multiplier:
             return 5, 1.95, consumption * 1.95
-        elif consumption <= 1000:
+        elif consumption <= 1000 * multiplier:
             return 6, 2.10, consumption * 2.10
         else:
             return 7, 2.58, consumption * 2.58
+
     elif source_type == 'gas':
-        if consumption <= 30:
+        if consumption <= 30 * multiplier:
             return 1, 4.00, consumption * 4.00
-        elif consumption <= 60:
+        elif consumption <= 60 * multiplier:
             return 2, 5.00, consumption * 5.00
         else:
             return 3, 7.00, consumption * 7.00
+
     return 0, 0.0, 0.0
 
 def waste_water_house(total_consumption, facility_subtype, months):
@@ -65,7 +82,7 @@ def waste_electricity_house(total_consumption, facility_subtype, months):
     except (ValueError, TypeError):
         num_persons = 1
         
-    base_person_usage_monthly = 179.3
+    base_person_usage_monthly = 180
     limit = base_person_usage_monthly * num_persons * months
     
     if total_consumption > limit:
@@ -184,16 +201,6 @@ def Analytics(df: pd.DataFrame, source_type: str, environment_type: str = "", fa
         monthly_costs = interval_df.groupby('month_year')['consumption_cost'].sum().to_dict()
         monthly_consumption = interval_df.groupby('month_year')['consumption'].sum().to_dict()
         
-        waste_amount = None
-        waste_percentage = None
-        
-        if environment_type.lower() == "house" and source_type == "water":
-            waste_amount, waste_percentage = waste_water_house(total_consumption, facility_subtype, months)
-        elif environment_type.lower() == "house" and source_type == "electricity":
-            waste_amount, waste_percentage = waste_electricity_house(total_consumption, facility_subtype, months)
-        elif environment_type.lower() == "house" and source_type == "gas":
-            waste_amount, waste_percentage = waste_gas_house(total_consumption, facility_subtype, months)
-        
         display_total_consumption = (
             int(round(total_consumption))
             if source_type == 'gas'
@@ -201,14 +208,31 @@ def Analytics(df: pd.DataFrame, source_type: str, environment_type: str = "", fa
             if source_type == 'electricity'
             else total_consumption
         )
+
+        waste_amount = None
+        waste_percentage = None
+        
+        if environment_type.lower() == "house" and source_type == "water":
+            waste_amount, waste_percentage = waste_water_house(display_total_consumption, facility_subtype, months)
+        elif environment_type.lower() == "house" and source_type == "electricity":
+            waste_amount, waste_percentage = waste_electricity_house(display_total_consumption, facility_subtype, months)
+        elif environment_type.lower() == "house" and source_type == "gas":
+            waste_amount, waste_percentage = waste_gas_house(display_total_consumption, facility_subtype, months)
+        
+        waste_cost = None
+        if waste_amount is not None:
+            monthly_avg_consumption = display_total_consumption / months if months > 0 else 0
+            cat, rate, total_cost = process_row_cost_house(monthly_avg_consumption, source_type, period='monthly')
+            waste_cost = round(waste_amount * rate, 2)
         
         analysis_results[f"last_{months}_months"] = {
             "total_consumption": round(display_total_consumption, 2),
             "average_daily_consumption": round(avg_daily, 2),
-            "monthly_costs": {k: round(v, 2) for k, v in monthly_costs.items()},
+            "monthly_costs": {k: round(v / 60, 2) if source_type == 'electricity' else round(v, 2) for k, v in monthly_costs.items()},
             "monthly_consumption": {k: round(v / 60, 2) if source_type == 'electricity' else round(v, 2) for k, v in monthly_consumption.items()},
             "waste_amount": waste_amount,
-            "waste_percentage": waste_percentage
+            "waste_percentage": waste_percentage,
+            "waste_cost": waste_cost
         }
         
     return analysis_results, df

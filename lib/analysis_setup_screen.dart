@@ -40,10 +40,7 @@ class _AnalysisSetupScreenState extends State<AnalysisSetupScreen> {
           ),
         ),
         centerTitle: true,
-        actions: const [
-          ThemeToggleButton(),
-          SizedBox(width: 8),
-        ],
+        actions: const [ThemeToggleButton(), SizedBox(width: 8)],
       ),
       body: ResponsiveCenter(
         maxWidth: 1000,
@@ -86,10 +83,7 @@ class _AnalysisSetupScreenState extends State<AnalysisSetupScreen> {
             Text(
               'Select an environment to begin monitoring energy flows.',
               textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 16,
-                color: colors.textSecondary,
-              ),
+              style: TextStyle(fontSize: 16, color: colors.textSecondary),
             ),
             const SizedBox(height: 40),
             Expanded(
@@ -120,17 +114,6 @@ class _AnalysisSetupScreenState extends State<AnalysisSetupScreen> {
                               colors: colors,
                             ),
                           ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: _buildEnvironmentCard(
-                              context,
-                              title: 'Factory',
-                              subtitle: 'Analyze industrial consumption',
-                              icon: Icons.factory_rounded,
-                              type: EnvironmentType.factory,
-                              colors: colors,
-                            ),
-                          ),
                         ],
                       )
                     : Column(
@@ -150,15 +133,6 @@ class _AnalysisSetupScreenState extends State<AnalysisSetupScreen> {
                             subtitle: 'Analyze company/building usage',
                             icon: Icons.business_rounded,
                             type: EnvironmentType.company,
-                            colors: colors,
-                          ),
-                          const SizedBox(height: 16),
-                          _buildEnvironmentCard(
-                            context,
-                            title: 'Factory',
-                            subtitle: 'Analyze industrial consumption',
-                            icon: Icons.factory_rounded,
-                            type: EnvironmentType.factory,
                             colors: colors,
                           ),
                           const SizedBox(height: 24),
@@ -190,10 +164,8 @@ class _AnalysisSetupScreenState extends State<AnalysisSetupScreen> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => EnvironmentConfigScreen(
-              type: type,
-              config: widget.config,
-            ),
+            builder: (context) =>
+                EnvironmentConfigScreen(type: type, config: widget.config),
           ),
         );
       },
@@ -235,10 +207,7 @@ class _AnalysisSetupScreenState extends State<AnalysisSetupScreen> {
             Text(
               subtitle,
               textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 14,
-                color: colors.textSecondary,
-              ),
+              style: TextStyle(fontSize: 14, color: colors.textSecondary),
             ),
           ],
         ),
