@@ -404,7 +404,9 @@ def calc_consumption(csv_path: str):
 async def predict_consumption(
     resource_type: str = Form(...),
     environment_type: str = Form(...),
-    facility_subtype: str = Form(...),
+    facility_subtype: str = Form(""),
+    facility_size: str = Form(""),
+    gas_price: str = Form(""),
     holiday_usage: str = Form(...),
     holiday_days: str = Form(""),
     duration_months: int = Form(...),
@@ -440,24 +442,24 @@ async def predict_consumption(
 
         # 3.5 Perform Analytics
         from Analytics import Analytics
-        analytics_results, _ = Analytics(daily_csv, resource_type, environment_type, facility_subtype)
+        analytics_results, _ = Analytics(daily_csv, resource_type, environment_type, facility_subtype, facility_size, gas_price=gas_price)
 
         # 4. Route to the appropriate resource logic
         resource_type_lower = resource_type.lower()
         if resource_type_lower == "water":
             from water_consumption import process_water_consumption
             prediction_result = process_water_consumption(
-                daily_csv, environment_type, facility_subtype, holiday_usage, holiday_days, duration_months, data_handling_method
+                daily_csv, environment_type, facility_subtype, holiday_usage, holiday_days, duration_months, data_handling_method, facility_size=facility_size
             )
         elif resource_type_lower == "electricity":
             from electricity_consumption import process_electricity_consumption
             prediction_result = process_electricity_consumption(
-                consumption_csv, environment_type, facility_subtype, holiday_usage, holiday_days, duration_months, data_handling_method, tmp_path
+                consumption_csv, environment_type, facility_subtype, holiday_usage, holiday_days, duration_months, data_handling_method, tmp_path, facility_size=facility_size
             )
         elif resource_type_lower == "gas":
             from gas_consumption import process_gas_consumption
             prediction_result = process_gas_consumption(
-                file, environment_type, facility_subtype, holiday_usage, holiday_days, duration_months, data_handling_method, tmp_path
+                consumption_csv, environment_type, facility_subtype, holiday_usage, holiday_days, duration_months, data_handling_method, tmp_path, facility_size=facility_size
             )
         else:
             raise ValueError(f"Unknown resource type: {resource_type}")
@@ -472,7 +474,14 @@ async def predict_consumption(
             def get_cost(period_pred, waste_amt, period_str):
                 if not waste_amt or not period_pred:
                     return 0.0
-                cat, rate, total_cost = process_row_cost_house(period_pred, resource_type_lower, period=period_str)
+                if environment_type == 'company':
+                    from Analytics import process_row_cost_company
+                    cat, rate, total_cost = process_row_cost_company(period_pred, resource_type_lower, period=period_str, gas_price=gas_price)
+                elif environment_type == 'house':
+                    from Analytics import process_row_cost_house
+                    cat, rate, total_cost = process_row_cost_house(period_pred, resource_type_lower, period=period_str)
+                else:
+                    rate = 0.0
                 return round(waste_amt * rate, 2)
 
             waste_dict["waste_cost_day"] = get_cost(prediction_result.get("next_day"), waste_dict.get("waste_day"), "daily")
@@ -485,22 +494,47 @@ async def predict_consumption(
         
         facility_data = {
             "name": "User Facility",
-            "type": environment_type,
-            "location": "Local",
-            resource_type_lower: {
-                "actual": actual_val,
-                "baseline": "N/A",
-                "waste": waste_amt,
-                "current_tier": "N/A",
-                "current_rate": "N/A",
-                "target_limit": "N/A",
-                "target_rate": "N/A",
-                "notes": f"Occupants/Units: {facility_subtype}"
-            }
+            "environment_type": environment_type,
+            "facility_subtype": facility_subtype,
+            "resource": resource_type_lower,
+            "predictions": {
+                "next_day": prediction_result.get("next_day"),
+                "next_week": prediction_result.get("next_week"),
+                "next_month": prediction_result.get("next_month"),
+                "next_quarter": prediction_result.get("next_quarter"),
+            },
+            "waste_analysis": prediction_result.get("waste", {}),
+            "historical_analytics": analytics_results.get("last_1_months", {}),
+            "historical_actual": actual_val
         }
         
         from LLM_Advices import generate_energy_advice
         llm_advices = generate_energy_advice(facility_data)
+
+        # --------------------------------------------------------
+        # History calculation for charts
+        # --------------------------------------------------------
+        try:
+            df_hist = daily_csv.copy()
+            df_hist["date"] = pd.to_datetime(df_hist["date"])
+            history = {
+                "day": df_hist.tail(3)["consumption"].tolist(),
+                "week": df_hist.resample("W", on="date")["consumption"].sum().tail(3).tolist(),
+                # Use 'ME'/'QE' for pandas >= 2.2, fallback to 'M'/'Q' if older
+                "month": df_hist.resample("ME" if hasattr(pd.tseries.offsets, "MonthEnd") else "M", on="date")["consumption"].sum().tail(3).tolist(),
+                "quarter": df_hist.resample("QE" if hasattr(pd.tseries.offsets, "QuarterEnd") else "Q", on="date")["consumption"].sum().tail(3).tolist(),
+            }
+        except Exception as e:
+            # Fallback if pandas version doesn't support 'ME'/'QE' etc.
+            try:
+                history = {
+                    "day": df_hist.tail(3)["consumption"].tolist(),
+                    "week": df_hist.resample("W", on="date")["consumption"].sum().tail(3).tolist(),
+                    "month": df_hist.resample("M", on="date")["consumption"].sum().tail(3).tolist(),
+                    "quarter": df_hist.resample("Q", on="date")["consumption"].sum().tail(3).tolist(),
+                }
+            except Exception:
+                history = {"day": [], "week": [], "month": [], "quarter": []}
 
         response_data = {
             "status": "success",
@@ -511,6 +545,7 @@ async def predict_consumption(
             "next_week_prediction": prediction_result.get("next_week"),
             "next_month_prediction": prediction_result.get("next_month"),
             "next_quarter_prediction": prediction_result.get("next_quarter"),
+            "history": history,
             "waste": prediction_result.get("waste"),
             "analytics": analytics_results,
             "llm_advices": llm_advices,
@@ -518,6 +553,7 @@ async def predict_consumption(
                 "resource_type": resource_type,
                 "environment_type": environment_type,
                 "facility_subtype": facility_subtype,
+                "facility_size": facility_size,
                 "holiday_usage": holiday_usage,
                 "holiday_days": holiday_days,
                 "duration_months": duration_months,

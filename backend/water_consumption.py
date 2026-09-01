@@ -1,4 +1,4 @@
-def process_water_consumption(df, environment_type: str, facility_subtype: str, holiday_usage: str, holiday_days: str, duration_months: int, data_handling_method: str):
+def process_water_consumption(df, environment_type: str, facility_subtype: str, holiday_usage: str, holiday_days: str, duration_months: int, data_handling_method: str, facility_size: str = ""):
     """
     Routes the water consumption data to the appropriate environment module.
     """

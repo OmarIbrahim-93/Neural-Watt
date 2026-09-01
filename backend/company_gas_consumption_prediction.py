@@ -146,7 +146,7 @@ def forecast_utility_pipeline(csv_path, model_path='../Models/Gas/Company/neural
     return forecast_results
 
 
-def process_company_gas(df, facility_subtype, holiday_usage, holiday_days, duration_months, data_handling_method, tmp_path=None):
+def process_company_gas(df, facility_subtype, facility_size, holiday_usage, holiday_days, duration_months, data_handling_method, tmp_path=None):
     """
     Processes company gas consumption data.
     """
@@ -164,13 +164,54 @@ def process_company_gas(df, facility_subtype, holiday_usage, holiday_days, durat
         print(f"Error in utility pipeline: {e}")
         forecast = {}
 
+    def calc_waste(pred, factor=1.0):
+        if not pred: return 0.0, 0.0
+        gas_thresholds = {
+            'Bakery': {'small': 2000, 'medium': 6000, 'large': 15000},
+            'Office': {'small': 100, 'medium': 500, 'large': 1200},
+            'Hotel': {'small': 1500, 'medium': 6000, 'large': 15000},
+            'Restaurant': {'small': 500, 'medium': 2000, 'large': 4500},
+            'School': {'small': 300, 'medium': 1500, 'large': 3000},
+            'SuperMarket': {'small': 300, 'medium': 1000, 'large': 2000},
+        }
+        base_threshold = 1000
+        if facility_subtype in gas_thresholds:
+            size = facility_size.lower() if facility_size else 'small'
+            if size not in gas_thresholds[facility_subtype]:
+                size = 'small'
+            base_threshold = gas_thresholds[facility_subtype][size]
+        
+        limit = base_threshold * factor
+        if pred > limit:
+            waste_amt = pred - limit
+            waste_pct = (waste_amt / limit) * 100
+            return round(waste_amt, 2), round(waste_pct, 2)
+        return 0.0, 0.0
+
+    day_amt, day_pct = calc_waste(forecast.get("Target_Next_Day"), factor=1/30)
+    week_amt, week_pct = calc_waste(forecast.get("Target_Next_Week"), factor=1/4)
+    month_amt, month_pct = calc_waste(forecast.get("Target_Next_Month"), factor=1.0)
+    quarter_amt, quarter_pct = calc_waste(forecast.get("Target_Next_Quarter"), factor=3.0)
+
+    waste_dict = {
+        "waste_day": day_amt,
+        "waste_day_pct": day_pct,
+        "waste_week": week_amt,
+        "waste_week_pct": week_pct,
+        "waste_month": month_amt,
+        "waste_month_pct": month_pct,
+        "waste_quarter": quarter_amt,
+        "waste_quarter_pct": quarter_pct,
+    }
+
     prediction_result = {
         "next_day": forecast.get("Target_Next_Day"),
         "next_week": forecast.get("Target_Next_Week"),
         "next_month": forecast.get("Target_Next_Month"),
         "next_quarter": forecast.get("Target_Next_Quarter"),
         "next_semi_annual": forecast.get("Target_Next_SemiAnnual"),
-        "next_annual": forecast.get("Target_Next_Annual")
+        "next_annual": forecast.get("Target_Next_Annual"),
+        "waste": waste_dict
     }
     
     return prediction_result

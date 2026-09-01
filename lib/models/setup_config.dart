@@ -6,6 +6,8 @@ class SetupConfig {
   String facilityName;
   String facilityLocation;
   String facilitySubType;
+  String facilitySize;
+  String gasPrice;
   bool holidayUsageEnabled;
   List<String> holidayDays;
   String? csvFilePath;
@@ -18,6 +20,8 @@ class SetupConfig {
     this.facilityName = 'ABC Factory',
     this.facilityLocation = 'Industrial Zone, Sector 4',
     this.facilitySubType = '',
+    this.facilitySize = '',
+    this.gasPrice = '',
     this.holidayUsageEnabled = true,
     this.holidayDays = const [],
     this.csvFilePath,

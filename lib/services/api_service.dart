@@ -121,6 +121,8 @@ class ApiService {
         request.fields['resource_type'] = config.resource;
         request.fields['environment_type'] = config.environmentType.name;
         request.fields['facility_subtype'] = config.facilitySubType;
+        request.fields['facility_size'] = config.facilitySize;
+        request.fields['gas_price'] = config.gasPrice;
         request.fields['holiday_usage'] = config.holidayUsageEnabled.toString();
         request.fields['holiday_days'] = config.holidayDays.join(',');
         request.fields['duration_months'] = durationMonths.toString();

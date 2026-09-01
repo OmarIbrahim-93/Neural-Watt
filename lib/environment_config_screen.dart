@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'holiday_schedule_screen.dart';
 import 'models/setup_config.dart';
 import 'utils/responsive.dart';
@@ -11,7 +12,11 @@ class EnvironmentConfigScreen extends StatefulWidget {
   final EnvironmentType type;
   final SetupConfig config;
 
-  const EnvironmentConfigScreen({super.key, required this.type, required this.config});
+  const EnvironmentConfigScreen({
+    super.key,
+    required this.type,
+    required this.config,
+  });
 
   @override
   State<EnvironmentConfigScreen> createState() =>
@@ -21,12 +26,15 @@ class EnvironmentConfigScreen extends StatefulWidget {
 class _EnvironmentConfigScreenState extends State<EnvironmentConfigScreen> {
   final _nameController = TextEditingController();
   final _locationController = TextEditingController();
+  final _gasPriceController = TextEditingController();
   String? _selectedDropdownValue;
+  String? _selectedSizeValue;
 
   @override
   void dispose() {
     _nameController.dispose();
     _locationController.dispose();
+    _gasPriceController.dispose();
     super.dispose();
   }
 
@@ -143,14 +151,14 @@ class _EnvironmentConfigScreenState extends State<EnvironmentConfigScreen> {
       case EnvironmentType.house:
         return List.generate(10, (index) => (index + 1).toString());
       case EnvironmentType.company:
-        return const ['Small (1-50)', 'Medium (51-200)', 'Large (201+)'];
       case EnvironmentType.factory:
         return const [
-          'Automotive',
-          'Electronics',
-          'Food & Beverage',
-          'Textiles',
-          'Other',
+          'Bakery',
+          'Office',
+          'Hotel',
+          'Restaurant',
+          'School',
+          'SuperMarket',
         ];
     }
   }
@@ -176,10 +184,7 @@ class _EnvironmentConfigScreenState extends State<EnvironmentConfigScreen> {
           ),
         ),
         centerTitle: true,
-        actions: const [
-          ThemeToggleButton(),
-          SizedBox(width: 8),
-        ],
+        actions: const [ThemeToggleButton(), SizedBox(width: 8)],
       ),
       body: SafeArea(
         child: LayoutBuilder(
@@ -209,7 +214,9 @@ class _EnvironmentConfigScreenState extends State<EnvironmentConfigScreen> {
                           child: LinearProgressIndicator(
                             value: _currentStep / 6,
                             backgroundColor: colors.accentContainer,
-                            valueColor: AlwaysStoppedAnimation<Color>(colors.accentBlue),
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              colors.accentBlue,
+                            ),
                             minHeight: 8,
                           ),
                         ),
@@ -236,7 +243,12 @@ class _EnvironmentConfigScreenState extends State<EnvironmentConfigScreen> {
                         // Form Fields
                         _buildLabel(_nameLabel, colors),
                         const SizedBox(height: 8),
-                        _buildTextField(_nameController, _nameHint, _nameIcon, colors),
+                        _buildTextField(
+                          _nameController,
+                          _nameHint,
+                          _nameIcon,
+                          colors,
+                        ),
                         const SizedBox(height: 20),
 
                         _buildLabel('Location', colors),
@@ -255,8 +267,55 @@ class _EnvironmentConfigScreenState extends State<EnvironmentConfigScreen> {
                           _dropdownHint,
                           _dropdownIcon,
                           _dropdownItems,
+                          _selectedDropdownValue,
+                          (value) {
+                            setState(() {
+                              _selectedDropdownValue = value;
+                            });
+                          },
                           colors,
                         ),
+
+                        if (widget.type == EnvironmentType.company ||
+                            widget.type == EnvironmentType.factory) ...[
+                          const SizedBox(height: 20),
+                          _buildLabel('Company Size', colors),
+                          const SizedBox(height: 8),
+                          _buildDropdownField(
+                            'Select company size...',
+                            Icons.group_outlined,
+                            const ['small', 'medium', 'large'],
+                            _selectedSizeValue,
+                            (value) {
+                              setState(() {
+                                _selectedSizeValue = value;
+                              });
+                            },
+                            colors,
+                          ),
+                        ],
+
+                        if (widget.type == EnvironmentType.company &&
+                            widget.config.resource.toLowerCase() == 'gas') ...[
+                          const SizedBox(height: 20),
+                          _buildLabel('Gas Price', colors),
+                          const SizedBox(height: 8),
+                          _buildTextField(
+                            _gasPriceController,
+                            'Enter gas price',
+                            Icons.monetization_on_outlined,
+                            colors,
+                            keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true,
+                            ),
+                            inputFormatters: [
+                              FilteringTextInputFormatter.allow(
+                                RegExp(r'[0-9.]'),
+                              ),
+                            ],
+                            suffixText: 'EGP/m³',
+                          ),
+                        ],
 
                         const SizedBox(height: 32),
 
@@ -266,8 +325,12 @@ class _EnvironmentConfigScreenState extends State<EnvironmentConfigScreen> {
                             padding: const EdgeInsets.all(20),
                             decoration: BoxDecoration(
                               color: colors.accentContainer,
-                              borderRadius: const BorderRadius.all(Radius.circular(16)),
-                              border: Border.all(color: colors.accentBlue.withValues(alpha: 0.3)),
+                              borderRadius: const BorderRadius.all(
+                                Radius.circular(16),
+                              ),
+                              border: Border.all(
+                                color: colors.accentBlue.withValues(alpha: 0.3),
+                              ),
                             ),
                             child: Column(
                               children: [
@@ -308,9 +371,38 @@ class _EnvironmentConfigScreenState extends State<EnvironmentConfigScreen> {
                         const SizedBox(height: 24),
                         ElevatedButton(
                           onPressed: () {
+                            if (widget.type == EnvironmentType.company &&
+                                widget.config.resource.toLowerCase() == 'gas') {
+                              if (_gasPriceController.text.trim().isEmpty) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Gas price is mandatory'),
+                                    backgroundColor: Colors.redAccent,
+                                  ),
+                                );
+                                return;
+                              }
+                            }
+
+                            widget.config.environmentType = widget.type;
                             widget.config.facilityName = _nameController.text;
-                            widget.config.facilityLocation = _locationController.text;
-                            widget.config.facilitySubType = _selectedDropdownValue ?? '';
+                            widget.config.facilityLocation =
+                                _locationController.text;
+                            widget.config.facilitySubType =
+                                _selectedDropdownValue ?? '';
+                            if (widget.type == EnvironmentType.company ||
+                                widget.type == EnvironmentType.factory) {
+                              widget.config.facilitySize =
+                                  _selectedSizeValue ?? '';
+                            } else {
+                              widget.config.facilitySize = '';
+                            }
+                            if (widget.type == EnvironmentType.company &&
+                                widget.config.resource.toLowerCase() == 'gas') {
+                              widget.config.gasPrice = _gasPriceController.text;
+                            } else {
+                              widget.config.gasPrice = '';
+                            }
                             Navigator.push(
                               context,
                               MaterialPageRoute(
@@ -321,7 +413,9 @@ class _EnvironmentConfigScreenState extends State<EnvironmentConfigScreen> {
                             );
                           },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: colors.isDark ? colors.accentBlue : const Color(0xFF0D1B3E),
+                            backgroundColor: colors.isDark
+                                ? colors.accentBlue
+                                : const Color(0xFF0D1B3E),
                             foregroundColor: Colors.white,
                             minimumSize: const Size.fromHeight(60),
                             shape: RoundedRectangleBorder(
@@ -371,8 +465,11 @@ class _EnvironmentConfigScreenState extends State<EnvironmentConfigScreen> {
     TextEditingController controller,
     String hint,
     IconData icon,
-    AppColors colors,
-  ) {
+    AppColors colors, {
+    TextInputType? keyboardType,
+    List<TextInputFormatter>? inputFormatters,
+    String? suffixText,
+  }) {
     final inputBorder = OutlineInputBorder(
       borderRadius: const BorderRadius.all(Radius.circular(12)),
       borderSide: BorderSide(color: colors.inputBorder),
@@ -382,10 +479,16 @@ class _EnvironmentConfigScreenState extends State<EnvironmentConfigScreen> {
       child: TextField(
         controller: controller,
         style: TextStyle(color: colors.textPrimary),
+        keyboardType: keyboardType,
+        inputFormatters: inputFormatters,
         decoration: InputDecoration(
           hintText: hint,
-          hintStyle: TextStyle(color: colors.textSecondary.withValues(alpha: 0.7)),
+          hintStyle: TextStyle(
+            color: colors.textSecondary.withValues(alpha: 0.7),
+          ),
           prefixIcon: Icon(icon, size: 22, color: colors.iconColor),
+          suffixText: suffixText,
+          suffixStyle: TextStyle(color: colors.textSecondary),
           filled: true,
           fillColor: colors.inputFill,
           border: inputBorder,
@@ -399,7 +502,14 @@ class _EnvironmentConfigScreenState extends State<EnvironmentConfigScreen> {
     );
   }
 
-  Widget _buildDropdownField(String hint, IconData icon, List<String> items, AppColors colors) {
+  Widget _buildDropdownField(
+    String hint,
+    IconData icon,
+    List<String> items,
+    String? value,
+    ValueChanged<String?> onChanged,
+    AppColors colors,
+  ) {
     return RepaintBoundary(
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
@@ -412,7 +522,8 @@ class _EnvironmentConfigScreenState extends State<EnvironmentConfigScreen> {
           child: DropdownButton<String>(
             isExpanded: true,
             dropdownColor: colors.cardBackground,
-            value: _selectedDropdownValue,
+            menuMaxHeight: 250,
+            value: value,
             hint: Row(
               children: [
                 Icon(icon, size: 22, color: colors.iconColor),
@@ -420,30 +531,20 @@ class _EnvironmentConfigScreenState extends State<EnvironmentConfigScreen> {
                 Expanded(
                   child: Text(
                     hint,
-                    style: TextStyle(
-                      color: colors.textSecondary,
-                      fontSize: 16,
-                    ),
+                    style: TextStyle(color: colors.textSecondary, fontSize: 16),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ],
             ),
-            icon: Icon(
-              Icons.keyboard_arrow_down,
-              color: colors.iconColor,
-            ),
-            items: items.map((String value) {
+            icon: Icon(Icons.keyboard_arrow_down, color: colors.iconColor),
+            items: items.map((String val) {
               return DropdownMenuItem<String>(
-                value: value,
-                child: Text(value, style: TextStyle(color: colors.textPrimary)),
+                value: val,
+                child: Text(val, style: TextStyle(color: colors.textPrimary)),
               );
             }).toList(),
-            onChanged: (value) {
-              setState(() {
-                _selectedDropdownValue = value;
-              });
-            },
+            onChanged: onChanged,
           ),
         ),
       ),

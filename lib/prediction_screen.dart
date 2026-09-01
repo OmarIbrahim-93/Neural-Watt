@@ -483,14 +483,12 @@ class _PredictionScreenState extends State<PredictionScreen> {
                       },
                     ),
                   ],
-                  if (_selectedTabIndex != 0) ...[
-                    const SizedBox(height: 16),
-                    _buildConsumptionForecastCard(
-                      colors,
-                      cardBgColor,
-                      cardBorderColor,
-                    ),
-                  ],
+                  const SizedBox(height: 16),
+                  _buildConsumptionForecastCard(
+                    colors,
+                    cardBgColor,
+                    cardBorderColor,
+                  ),
                   const SizedBox(height: 16),
                   _buildAdviceCard(colors, cardBgColor, cardBorderColor),
                   const SizedBox(height: 32),
@@ -769,7 +767,7 @@ class _PredictionScreenState extends State<PredictionScreen> {
     if (data['waste'] == null) return 0.0;
 
     final wasteData = data['waste'] as Map<String, dynamic>;
-    
+
     switch (_tabs[_selectedTabIndex]) {
       case 'NEXT DAY':
         return (wasteData['waste_cost_day'] as num?)?.toDouble() ?? 0.0;
@@ -819,7 +817,11 @@ class _PredictionScreenState extends State<PredictionScreen> {
               crossAxisAlignment: CrossAxisAlignment.baseline,
               textBaseline: TextBaseline.alphabetic,
               children: [
-                const Icon(Icons.arrow_downward, color: Colors.redAccent, size: 28),
+                const Icon(
+                  Icons.arrow_downward,
+                  color: Colors.redAccent,
+                  size: 28,
+                ),
                 const SizedBox(width: 4),
                 Text(
                   cost.toStringAsFixed(2),
@@ -845,6 +847,49 @@ class _PredictionScreenState extends State<PredictionScreen> {
         ],
       ),
     );
+  }
+
+  List<double> _getHistoryValues() {
+    final data = widget.predictionData;
+    if (data == null || data['history'] == null) return [30, 45, 35];
+
+    final history = data['history'] as Map<String, dynamic>;
+    List<dynamic> rawList = [];
+    switch (_tabs[_selectedTabIndex]) {
+      case 'NEXT DAY':
+        rawList = history['day'] ?? [];
+        break;
+      case 'NEXT WEEK':
+        rawList = history['week'] ?? [];
+        break;
+      case 'NEXT MONTH':
+        rawList = history['month'] ?? [];
+        break;
+      case 'NEXT QUARTER':
+        rawList = history['quarter'] ?? [];
+        break;
+    }
+    return rawList.map((e) => (e as num).toDouble()).toList();
+  }
+
+  double _getRawPredictionValue() {
+    final data = widget.predictionData;
+    if (data != null) {
+      switch (_tabs[_selectedTabIndex]) {
+        case 'NEXT DAY':
+          return (data['next_day_prediction'] as num?)?.toDouble() ?? 50.0;
+        case 'NEXT WEEK':
+          return (data['next_week_prediction'] as num?)?.toDouble() ?? 50.0;
+        case 'NEXT MONTH':
+          return (data['next_month_prediction'] as num?)?.toDouble() ?? 50.0;
+        case 'NEXT QUARTER':
+          final q = data['next_quarter_prediction'] as num?;
+          if (q != null) return q.toDouble();
+          final m = data['next_month_prediction'] as num?;
+          return m != null ? m.toDouble() * 3 : 50.0;
+      }
+    }
+    return 50.0;
   }
 
   Widget _buildConsumptionForecastCard(
@@ -895,34 +940,10 @@ class _PredictionScreenState extends State<PredictionScreen> {
                 gridColor: colors.isDark
                     ? Colors.white.withValues(alpha: 0.05)
                     : Colors.black.withValues(alpha: 0.05),
+                actualValues: _getHistoryValues(),
+                predictedValue: _getRawPredictionValue(),
               ),
-              child: Stack(
-                children: [
-                  Positioned(
-                    bottom: 0,
-                    right: 0,
-                    child: Container(
-                      width: 60,
-                      height: 60,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: colors.isDark
-                            ? const Color(0xFF1E3A8A).withValues(alpha: 0.3)
-                            : const Color(0xFFDBEAFE),
-                        border: Border.all(
-                          color: const Color(0xFF4F8AFC).withValues(alpha: 0.3),
-                          width: 2,
-                        ),
-                      ),
-                      child: const Center(
-                        child: Icon(
-                          Icons.hub,
-                          color: Color(0xFF4F8AFC),
-                          size: 30,
-                        ),
-                      ),
-                    ),
-                  ),
+              child: Stack(children: [
                 ],
               ),
             ),
@@ -965,91 +986,141 @@ class _PredictionScreenState extends State<PredictionScreen> {
     if (data == null || data['llm_advices'] == null) {
       return const SizedBox.shrink();
     }
+
     final advices = data['llm_advices'] as Map<String, dynamic>;
 
-    String key;
+    String horizonKey;
     switch (_tabs[_selectedTabIndex]) {
       case 'NEXT DAY':
-        key = 'day';
+        horizonKey = 'next_day';
         break;
       case 'NEXT WEEK':
-        key = 'week';
+        horizonKey = 'next_week';
         break;
       case 'NEXT MONTH':
-        key = 'month';
+        horizonKey = 'next_month';
         break;
       case 'NEXT QUARTER':
-        key = 'quarter';
+        horizonKey = 'next_quarter';
         break;
       default:
-        key = 'day';
+        horizonKey = 'next_month';
     }
 
-    final List<dynamic>? bulletPoints = advices[key];
-    if (bulletPoints == null || bulletPoints.isEmpty) {
+    final horizonData = advices[horizonKey] as Map<String, dynamic>?;
+    final messages = horizonData?['messages'] as List<dynamic>?;
+
+    if (messages == null || messages.isEmpty) {
       return const SizedBox.shrink();
     }
 
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: border),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 4.0),
+          child: Row(
             children: [
               const Icon(
-                Icons.tips_and_updates_outlined,
+                Icons.auto_awesome,
                 size: 18,
-                color: Color(0xFFFBBF24),
+                color: Color(0xFF4F8AFC),
               ),
               const SizedBox(width: 8),
               Text(
-                'AI EFFICIENCY ADVICE',
+                'AI EFFICIENCY ADVISOR',
                 style: TextStyle(
-                  fontSize: 11,
+                  fontSize: 12,
                   fontWeight: FontWeight.bold,
                   color: colors.textSecondary,
-                  letterSpacing: 0.5,
+                  letterSpacing: 1.0,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 16),
-          ...bulletPoints.map(
-            (point) => Padding(
-              padding: const EdgeInsets.only(bottom: 8.0),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '• ',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: colors.textPrimary,
-                      height: 1.2,
-                    ),
-                  ),
-                  Expanded(
-                    child: Text(
-                      point.toString(),
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: colors.textPrimary,
-                        height: 1.4,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+        ),
+        const SizedBox(height: 16),
+        ...messages.map((msg) {
+          final type = msg['type'] as String?;
+          final title = msg['title'] as String? ?? 'Advice';
+          final text = msg['message'] as String? ?? '';
+
+          IconData iconData;
+          Color iconColor;
+
+          switch (type) {
+            case 'waste_reduction':
+              iconData = Icons.delete_sweep_rounded;
+              iconColor = Colors.orangeAccent;
+              break;
+            case 'category_reduction':
+              iconData = Icons.trending_down_rounded;
+              iconColor = Colors.greenAccent;
+              break;
+            case 'category_maintenance':
+              iconData = Icons.verified_rounded;
+              iconColor = Colors.greenAccent;
+              break;
+            case 'equipment_check':
+              iconData = Icons.build_circle_rounded;
+              iconColor = Colors.redAccent;
+              break;
+            case 'general_advice':
+            default:
+              iconData = Icons.lightbulb_rounded;
+              iconColor = const Color(0xFFFBBF24);
+              break;
+          }
+
+          return Container(
+            margin: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: bg,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: border),
             ),
-          ),
-        ],
-      ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: iconColor.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(iconData, color: iconColor, size: 24),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                          color: colors.textPrimary,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        text,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: colors.textSecondary,
+                          height: 1.5,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          );
+        }).toList(),
+      ],
     );
   }
 
@@ -1139,11 +1210,15 @@ class ForecastChartPainter extends CustomPainter {
   final Color lineColor;
   final Color predictColor;
   final Color gridColor;
+  final List<double> actualValues;
+  final double predictedValue;
 
   ForecastChartPainter({
     required this.lineColor,
     required this.predictColor,
     required this.gridColor,
+    required this.actualValues,
+    required this.predictedValue,
   });
 
   @override
@@ -1176,53 +1251,151 @@ class ForecastChartPainter extends CustomPainter {
       gridPaint,
     );
 
-    // Points for actual data (smooth curve)
-    final actualPoints = [
-      Offset(0, height * 0.7),
-      Offset(width * 0.15, height * 0.55),
-      Offset(width * 0.3, height * 0.6),
-      Offset(width * 0.45, height * 0.3),
-      Offset(width * 0.6, height * 0.65), // intersection point
-    ];
+    // Combine values to find min and max
+    final allValues = [...actualValues, predictedValue];
+    if (allValues.isEmpty) return;
 
-    // Points for predicted data (dashed smooth curve)
-    final predictPoints = [
-      Offset(width * 0.6, height * 0.65),
-      Offset(width * 0.7, height * 0.5),
-      Offset(width * 0.8, height * 0.55),
-      Offset(width * 0.9, height * 0.45),
-      Offset(width, height * 0.25),
-    ];
+    double maxVal = allValues.reduce((a, b) => a > b ? a : b);
+    double minVal = allValues.reduce((a, b) => a < b ? a : b);
 
-    // Draw Actual Line
+    // Add some padding to min/max
+    if (maxVal == minVal) {
+      maxVal = maxVal == 0 ? 1 : maxVal * 1.5;
+      minVal = 0;
+    } else {
+      final padding = (maxVal - minVal) * 0.2;
+      maxVal += padding;
+      minVal = (minVal - padding).clamp(0.0, double.infinity);
+    }
+
+    // Chart bounds
+    final double topY = height * 0.1;
+    final double bottomY = height * 0.9;
+    final double drawHeight = bottomY - topY;
+
+    double normalizeY(double val) {
+      return bottomY - ((val - minVal) / (maxVal - minVal)) * drawHeight;
+    }
+
+    // Calculate x spacing
+    final int totalPoints = actualValues.length + 1; // actuals + 1 predicted
+    final double xSpacing = totalPoints > 1 ? width / (totalPoints - 1) : width;
+
+    // Points for actual data
+    final List<Offset> actualPoints = [];
+    for (int i = 0; i < actualValues.length; i++) {
+      actualPoints.add(Offset(i * xSpacing, normalizeY(actualValues[i])));
+    }
+
+    // Points for predicted data (connecting last actual to predicted)
+    final List<Offset> predictPoints = [];
+    if (actualPoints.isNotEmpty) {
+      predictPoints.add(actualPoints.last);
+      predictPoints.add(
+        Offset(actualValues.length * xSpacing, normalizeY(predictedValue)),
+      );
+    }
+
+    // Draw Actual Line and Fill
     final actualPath = _createSplinePath(actualPoints);
     final actualPaint = Paint()
       ..color = lineColor
       ..strokeWidth = 4
       ..strokeCap = StrokeCap.round
       ..style = PaintingStyle.stroke;
-    canvas.drawPath(actualPath, actualPaint);
 
-    // Draw Actual Dots
-    final dotPaint = Paint()..color = lineColor;
-    for (int i = 1; i < actualPoints.length - 1; i++) {
-      canvas.drawCircle(actualPoints[i], 4, dotPaint);
+    if (actualPoints.isNotEmpty) {
+      // Draw Gradient Fill
+      final fillPath = Path.from(actualPath);
+      fillPath.lineTo(actualPoints.last.dx, height);
+      fillPath.lineTo(actualPoints.first.dx, height);
+      fillPath.close();
+
+      final Rect shaderRect = Rect.fromLTRB(
+        actualPoints.first.dx,
+        topY,
+        actualPoints.last.dx,
+        height,
+      );
+
+      final gradient = LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [
+          lineColor.withValues(alpha: 0.3),
+          lineColor.withValues(alpha: 0.0),
+        ],
+      ).createShader(shaderRect);
+
+      canvas.drawPath(fillPath, Paint()..shader = gradient);
+
+      // Draw Stroke
+      canvas.drawPath(actualPath, actualPaint);
     }
 
-    // Draw Predicted Line (Dashed)
-    final predictPath = _createSplinePath(predictPoints);
-    final predictPaint = Paint()
-      ..color = predictColor
-      ..strokeWidth = 4
-      ..strokeCap = StrokeCap.round
-      ..style = PaintingStyle.stroke;
+    // Draw Predicted Line (Dashed) and Fill
+    if (predictPoints.length > 1) {
+      final predictPath = _createSplinePath(predictPoints);
+      final predictPaint = Paint()
+        ..color = predictColor
+        ..strokeWidth = 4
+        ..strokeCap = StrokeCap.round
+        ..style = PaintingStyle.stroke;
 
-    _drawDashedPath(canvas, predictPath, predictPaint);
+      // Draw Gradient Fill
+      final predictFillPath = Path.from(predictPath);
+      predictFillPath.lineTo(predictPoints.last.dx, height);
+      predictFillPath.lineTo(predictPoints.first.dx, height);
+      predictFillPath.close();
 
-    // Draw Predicted Dots
-    final predictDotPaint = Paint()..color = predictColor;
-    for (int i = 0; i < predictPoints.length; i++) {
-      canvas.drawCircle(predictPoints[i], 4, predictDotPaint);
+      final Rect predictRect = Rect.fromLTRB(
+        predictPoints.first.dx,
+        topY,
+        predictPoints.last.dx,
+        height,
+      );
+
+      final predictGradient = LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [
+          predictColor.withValues(alpha: 0.3),
+          predictColor.withValues(alpha: 0.0),
+        ],
+      ).createShader(predictRect);
+
+      canvas.drawPath(predictFillPath, Paint()..shader = predictGradient);
+
+      // Draw Dashed Stroke
+      _drawDashedPath(canvas, predictPath, predictPaint);
+    }
+
+    // Draw Actual Dots
+    for (int i = 0; i < actualPoints.length; i++) {
+      // Glow
+      canvas.drawCircle(
+        actualPoints[i],
+        8,
+        Paint()..color = lineColor.withValues(alpha: 0.2),
+      );
+      // Outer
+      canvas.drawCircle(actualPoints[i], 4, Paint()..color = lineColor);
+      // Inner
+      canvas.drawCircle(actualPoints[i], 2, Paint()..color = Colors.white);
+    }
+
+    // Draw Predicted Dots (skip the first point since it's the last actual dot)
+    for (int i = 1; i < predictPoints.length; i++) {
+      // Glow
+      canvas.drawCircle(
+        predictPoints[i],
+        8,
+        Paint()..color = predictColor.withValues(alpha: 0.2),
+      );
+      // Outer
+      canvas.drawCircle(predictPoints[i], 4, Paint()..color = predictColor);
+      // Inner
+      canvas.drawCircle(predictPoints[i], 2, Paint()..color = Colors.white);
     }
   }
 

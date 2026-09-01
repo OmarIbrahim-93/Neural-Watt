@@ -137,7 +137,7 @@ class _ReviewConfigurationScreenState extends State<ReviewConfigurationScreen> {
                           children: [
                             _buildForecastHorizonCard(duration, colors),
                             const SizedBox(height: 16),
-                            _buildHolidayUsageCard(colors, holidayUsageEnabled),
+                            _buildHolidayUsageCard(colors, setup),
                           ],
                         ),
                       ),
@@ -160,7 +160,7 @@ class _ReviewConfigurationScreenState extends State<ReviewConfigurationScreen> {
                     colors,
                   ),
                   const SizedBox(height: 16),
-                  _buildHolidayUsageCard(colors, holidayUsageEnabled),
+                  _buildHolidayUsageCard(colors, setup),
                 ],
 
                 const SizedBox(height: 40),
@@ -287,6 +287,229 @@ class _ReviewConfigurationScreenState extends State<ReviewConfigurationScreen> {
     );
   }
 
+  void _showEditDialog(SetupConfig setup, AppColors colors) {
+    TextEditingController nameController = TextEditingController(
+      text: setup.facilityName,
+    );
+    TextEditingController locationController = TextEditingController(
+      text: setup.facilityLocation,
+    );
+    TextEditingController typeController = TextEditingController(
+      text: setup.facilitySubType,
+    );
+    TextEditingController sizeController = TextEditingController(
+      text: setup.facilitySize,
+    );
+
+    String? factoryType = setup.facilitySubType.isNotEmpty
+        ? setup.facilitySubType
+        : null;
+    String? factorySize = setup.facilitySize.isNotEmpty
+        ? setup.facilitySize
+        : null;
+
+    final factoryTypeOptions = [
+      "Bakery",
+      "Office",
+      "Hotel",
+      "Restaurant",
+      "School",
+      "SuperMarket",
+    ];
+    final factorySizeOptions = ["small", "midium", "large"];
+
+    if (setup.environmentType == EnvironmentType.factory ||
+        setup.environmentType == EnvironmentType.company) {
+      if (!factoryTypeOptions.contains(factoryType))
+        factoryType = factoryTypeOptions.first;
+      if (!factorySizeOptions.contains(factorySize))
+        factorySize = factorySizeOptions.first;
+    }
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              backgroundColor: colors.cardBackground,
+              title: Text(
+                'Edit Configuration',
+                style: TextStyle(color: colors.textPrimary),
+              ),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextField(
+                      controller: nameController,
+                      style: TextStyle(color: colors.textPrimary),
+                      decoration: InputDecoration(
+                        labelText:
+                            setup.environmentType == EnvironmentType.house
+                            ? 'House Name'
+                            : setup.environmentType == EnvironmentType.company
+                            ? 'Company Name'
+                            : 'Factory Name',
+                        labelStyle: TextStyle(color: colors.textSecondary),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: colors.cardBorder),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: colors.accentBlue),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: locationController,
+                      style: TextStyle(color: colors.textPrimary),
+                      decoration: InputDecoration(
+                        labelText:
+                            setup.environmentType == EnvironmentType.house
+                            ? 'House Location'
+                            : setup.environmentType == EnvironmentType.company
+                            ? 'Company Location'
+                            : 'Factory Location',
+                        labelStyle: TextStyle(color: colors.textSecondary),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: colors.cardBorder),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: colors.accentBlue),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    if (setup.environmentType == EnvironmentType.house) ...[
+                      TextField(
+                        controller: typeController,
+                        style: TextStyle(color: colors.textPrimary),
+                        decoration: InputDecoration(
+                          labelText: 'Number of Persons',
+                          labelStyle: TextStyle(color: colors.textSecondary),
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: colors.cardBorder),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: colors.accentBlue),
+                          ),
+                        ),
+                      ),
+                    ] else if (setup.environmentType ==
+                            EnvironmentType.company ||
+                        setup.environmentType == EnvironmentType.factory) ...[
+                      DropdownButtonFormField<String>(
+                        value: factoryType,
+                        dropdownColor: colors.cardBackground,
+                        decoration: InputDecoration(
+                          labelText:
+                              setup.environmentType == EnvironmentType.company
+                              ? 'Company Type'
+                              : 'Industry Type',
+                          labelStyle: TextStyle(color: colors.textSecondary),
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: colors.cardBorder),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: colors.accentBlue),
+                          ),
+                        ),
+                        items: factoryTypeOptions.map((String value) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Text(
+                              value,
+                              style: TextStyle(color: colors.textPrimary),
+                            ),
+                          );
+                        }).toList(),
+                        onChanged: (val) {
+                          setDialogState(() {
+                            factoryType = val;
+                          });
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      DropdownButtonFormField<String>(
+                        value: factorySize,
+                        dropdownColor: colors.cardBackground,
+                        decoration: InputDecoration(
+                          labelText:
+                              setup.environmentType == EnvironmentType.company
+                              ? 'Company Size'
+                              : 'Factory Size',
+                          labelStyle: TextStyle(color: colors.textSecondary),
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: colors.cardBorder),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: colors.accentBlue),
+                          ),
+                        ),
+                        items: factorySizeOptions.map((String value) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Text(
+                              value,
+                              style: TextStyle(color: colors.textPrimary),
+                            ),
+                          );
+                        }).toList(),
+                        onChanged: (val) {
+                          setDialogState(() {
+                            factorySize = val;
+                          });
+                        },
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: Text(
+                    'Cancel',
+                    style: TextStyle(color: colors.textSecondary),
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    setState(() {
+                      setup.facilityName = nameController.text;
+                      setup.facilityLocation = locationController.text;
+
+                      if (setup.environmentType == EnvironmentType.house) {
+                        setup.facilitySubType = typeController.text;
+                      } else if (setup.environmentType ==
+                          EnvironmentType.company) {
+                        setup.facilitySubType = typeController.text;
+                        setup.facilitySize = sizeController.text;
+                      } else if (setup.environmentType ==
+                          EnvironmentType.factory) {
+                        setup.facilitySubType = factoryType ?? '';
+                        setup.facilitySize = factorySize ?? '';
+                      }
+                    });
+                    Navigator.pop(context);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: colors.accentBlue,
+                  ),
+                  child: const Text(
+                    'Save',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
   Widget _buildTargetFacilityCard(
     AppColors colors,
     SetupConfig setup,
@@ -301,9 +524,13 @@ class _ReviewConfigurationScreenState extends State<ReviewConfigurationScreen> {
           break;
         case EnvironmentType.company:
           topLabel = 'COMPANY TYPE: ${setup.facilitySubType.toUpperCase()}';
+          if (setup.facilitySize.isNotEmpty)
+            topLabel += ' | SIZE: ${setup.facilitySize.toUpperCase()}';
           break;
         case EnvironmentType.factory:
           topLabel = 'INDUSTRY TYPE: ${setup.facilitySubType.toUpperCase()}';
+          if (setup.facilitySize.isNotEmpty)
+            topLabel += ' | SIZE: ${setup.facilitySize.toUpperCase()}';
           break;
       }
     }
@@ -358,7 +585,10 @@ class _ReviewConfigurationScreenState extends State<ReviewConfigurationScreen> {
               ],
             ),
           ),
-          Icon(Icons.edit_outlined, color: colors.accentBlue, size: 20),
+          IconButton(
+            icon: Icon(Icons.edit_outlined, color: colors.accentBlue, size: 20),
+            onPressed: () => _showEditDialog(setup, colors),
+          ),
         ],
       ),
     );
@@ -552,7 +782,7 @@ class _ReviewConfigurationScreenState extends State<ReviewConfigurationScreen> {
     );
   }
 
-  Widget _buildHolidayUsageCard(AppColors colors, bool holidayUsageEnabled) {
+  Widget _buildHolidayUsageCard(AppColors colors, SetupConfig setup) {
     return _buildCard(
       colors: colors,
       child: Row(
@@ -576,7 +806,7 @@ class _ReviewConfigurationScreenState extends State<ReviewConfigurationScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Holiday Usage Profiles',
+                  'Holiday Usage',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -592,6 +822,18 @@ class _ReviewConfigurationScreenState extends State<ReviewConfigurationScreen> {
                     height: 1.4,
                   ),
                 ),
+                if (setup.holidayUsageEnabled &&
+                    setup.holidayDays.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    'Off-days: ${setup.holidayDays.join(', ')}',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: colors.accentBlue,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
@@ -605,13 +847,13 @@ class _ReviewConfigurationScreenState extends State<ReviewConfigurationScreen> {
                   vertical: 6,
                 ),
                 decoration: BoxDecoration(
-                  color: holidayUsageEnabled
+                  color: setup.holidayUsageEnabled
                       ? colors.accentBlue
                       : colors.cardBorder,
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
-                  holidayUsageEnabled ? 'Enabled' : 'Disabled',
+                  setup.holidayUsageEnabled ? 'Enabled' : 'Disabled',
                   style: const TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
@@ -620,11 +862,146 @@ class _ReviewConfigurationScreenState extends State<ReviewConfigurationScreen> {
                 ),
               ),
               const SizedBox(height: 12),
-              Icon(Icons.edit_outlined, color: colors.accentBlue, size: 18),
+              IconButton(
+                icon: Icon(
+                  Icons.edit_outlined,
+                  color: colors.accentBlue,
+                  size: 18,
+                ),
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+                onPressed: () => _showHolidayEditDialog(setup, colors),
+              ),
             ],
           ),
         ],
       ),
+    );
+  }
+
+  void _showHolidayEditDialog(SetupConfig setup, AppColors colors) {
+    bool isEnabled = setup.holidayUsageEnabled;
+    List<String> selectedDays = List.from(setup.holidayDays);
+    final List<String> weekDays = [
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
+      'Sunday',
+    ];
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              backgroundColor: colors.cardBackground,
+              title: Text(
+                'Edit Holiday Usage',
+                style: TextStyle(color: colors.textPrimary),
+              ),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
+                      children: [
+                        Checkbox(
+                          value: isEnabled,
+                          onChanged: (val) {
+                            if (val != null) {
+                              setDialogState(() {
+                                isEnabled = val;
+                              });
+                            }
+                          },
+                          activeColor: colors.accentBlue,
+                        ),
+                        Expanded(
+                          child: Text(
+                            'Enable Holiday Usage',
+                            style: TextStyle(color: colors.textPrimary),
+                          ),
+                        ),
+                        Tooltip(
+                          message:
+                              'Adjusts baseline prediction by considering the selected days as holidays or off-days with lower resource usage.',
+                          child: Icon(
+                            Icons.help_outline,
+                            color: colors.textSecondary,
+                            size: 20,
+                          ),
+                        ),
+                      ],
+                    ),
+                    if (isEnabled) ...[
+                      const SizedBox(height: 16),
+                      Text(
+                        'Select off-days:',
+                        style: TextStyle(
+                          color: colors.textPrimary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      ...weekDays.map((day) {
+                        return CheckboxListTile(
+                          title: Text(
+                            day,
+                            style: TextStyle(color: colors.textPrimary),
+                          ),
+                          value: selectedDays.contains(day),
+                          activeColor: colors.accentBlue,
+                          onChanged: (bool? value) {
+                            setDialogState(() {
+                              if (value == true) {
+                                selectedDays.add(day);
+                              } else {
+                                selectedDays.remove(day);
+                              }
+                            });
+                          },
+                          controlAffinity: ListTileControlAffinity.leading,
+                          contentPadding: EdgeInsets.zero,
+                          dense: true,
+                        );
+                      }).toList(),
+                    ],
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: Text(
+                    'Cancel',
+                    style: TextStyle(color: colors.textSecondary),
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    setState(() {
+                      setup.holidayUsageEnabled = isEnabled;
+                      setup.holidayDays = selectedDays;
+                    });
+                    Navigator.pop(context);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: colors.accentBlue,
+                  ),
+                  child: const Text(
+                    'Save',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 }

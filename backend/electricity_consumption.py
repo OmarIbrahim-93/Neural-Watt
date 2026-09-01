@@ -1,4 +1,4 @@
-def process_electricity_consumption(df, environment_type: str, facility_subtype: str, holiday_usage: str, holiday_days: str, duration_months: int, data_handling_method: str, csv_path: str = None):
+def process_electricity_consumption(df, environment_type: str, facility_subtype: str, holiday_usage: str, holiday_days: str, duration_months: int, data_handling_method: str, csv_path: str = None, facility_size: str = ""):
     """
     Routes the electricity consumption data to the appropriate environment module.
     """

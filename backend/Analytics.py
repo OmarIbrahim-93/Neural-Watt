@@ -53,6 +53,51 @@ def process_row_cost_house(consumption, source_type, period='monthly'):
 
     return 0, 0.0, 0.0
 
+def process_row_cost_company(consumption, source_type, period='monthly', gas_price=""):
+    import pandas as pd
+    if pd.isna(consumption):
+        return 0, 0.0, 0.0
+
+    if period == 'daily':
+        multiplier = 1 / 30
+    elif period == 'weekly':
+        multiplier = 1 / 4
+    elif period == 'monthly':
+        multiplier = 1.0
+    elif period == 'quarter' or period == 'quarterly':
+        multiplier = 3.0
+    else:
+        multiplier = 1.0
+
+    if source_type == 'water':
+        if consumption <= 50 * multiplier:
+            return 1, 4.50, consumption * 4.50
+        elif consumption <= 100 * multiplier:
+            return 2, 5.00, consumption * 5.00
+        else:
+            return 3, 6.00, consumption * 6.00
+            
+    elif source_type == 'electricity':
+        if consumption <= 100 * multiplier:
+            return 1, 0.85, consumption * 0.85
+        elif consumption <= 250 * multiplier:
+            return 2, 1.68, consumption * 1.68
+        elif consumption <= 600 * multiplier:
+            return 3, 2.20, consumption * 2.20
+        elif consumption <= 1000 * multiplier:
+            return 4, 2.27, consumption * 2.27
+        else:
+            return 5, 2.33, consumption * 2.33
+            
+    elif source_type == 'gas':
+        try:
+            rate = float(gas_price)
+        except (ValueError, TypeError):
+            rate = 3.4
+        return 1, rate, consumption * rate
+
+    return 0, 0.0, 0.0
+
 def waste_water_house(total_consumption, facility_subtype, months):
     try:
         num_persons = int(str(facility_subtype))
@@ -110,7 +155,97 @@ def waste_gas_house(total_consumption, facility_subtype, months):
         
     return None, None
 
-def Analytics(df: pd.DataFrame, source_type: str, environment_type: str = "", facility_subtype: str = ""):
+def waste_gas_company(total_consumption, facility_subtype, facility_size, months):
+    try:
+        gas_thresholds = {
+            'Bakery': {'small': 2000, 'medium': 6000, 'large': 15000},
+            'Office': {'small': 100, 'medium': 500, 'large': 1200},
+            'Hotel': {'small': 1500, 'medium': 6000, 'large': 15000},
+            'Restaurant': {'small': 500, 'medium': 2000, 'large': 4500},
+            'School': {'small': 300, 'medium': 1500, 'large': 3000},
+            'SuperMarket': {'small': 300, 'medium': 1000, 'large': 2000},
+        }
+        
+        base_threshold = 1000
+        if facility_subtype in gas_thresholds:
+            size = facility_size.lower() if facility_size else 'small'
+            if size not in gas_thresholds[facility_subtype]:
+                size = 'small'
+            base_threshold = gas_thresholds[facility_subtype][size]
+            
+        period_threshold = base_threshold * months
+
+        if total_consumption > period_threshold:
+            waste_amount = total_consumption - period_threshold
+            waste_percentage = (waste_amount / period_threshold) * 100
+            return waste_amount, round(waste_percentage, 2)
+        else:
+            return 0.0, 0.0
+    except Exception as e:
+        print(f"Error calculating gas waste for company: {e}")
+        return 0.0, 0.0
+
+def waste_electricity_company(total_consumption, facility_subtype, facility_size, months):
+    try:
+        electricity_thresholds = {
+            'Bakery': {'small': 5000, 'medium': 20000, 'large': 60000},
+            'Office': {'small': 2500, 'medium': 10000, 'large': 30000},
+            'Hotel': {'small': 10000, 'medium': 40000, 'large': 120000},
+            'Restaurant': {'small': 8000, 'medium': 30000, 'large': 100000},
+            'School': {'small': 3000, 'medium': 12000, 'large': 35000},
+            'SuperMarket': {'small': 10000, 'medium': 50000, 'large': 150000},
+        }
+        
+        base_threshold = 2500
+        if facility_subtype in electricity_thresholds:
+            size = facility_size.lower() if facility_size else 'small'
+            if size not in electricity_thresholds[facility_subtype]:
+                size = 'small'
+            base_threshold = electricity_thresholds[facility_subtype][size]
+            
+        period_threshold = base_threshold * months
+
+        if total_consumption > period_threshold:
+            waste_amount = total_consumption - period_threshold
+            waste_percentage = (waste_amount / period_threshold) * 100
+            return waste_amount, round(waste_percentage, 2)
+        else:
+            return 0.0, 0.0
+    except Exception as e:
+        print(f"Error calculating electricity waste for company: {e}")
+        return 0.0, 0.0
+
+def waste_water_company(total_consumption, facility_subtype, facility_size, months):
+    try:
+        water_thresholds = {
+            'Bakery': {'small': 5000, 'medium': 20000, 'large': 60000},
+            'Office': {'small': 2500, 'medium': 10000, 'large': 30000},
+            'Hotel': {'small': 10000, 'medium': 40000, 'large': 120000},
+            'Restaurant': {'small': 8000, 'medium': 30000, 'large': 100000},
+            'School': {'small': 3000, 'medium': 12000, 'large': 35000},
+            'SuperMarket': {'small': 10000, 'medium': 50000, 'large': 150000},
+        }
+        
+        base_threshold = 2500
+        if facility_subtype in water_thresholds:
+            size = facility_size.lower() if facility_size else 'small'
+            if size not in water_thresholds[facility_subtype]:
+                size = 'small'
+            base_threshold = water_thresholds[facility_subtype][size]
+            
+        period_threshold = base_threshold * months
+
+        if total_consumption > period_threshold:
+            waste_amount = total_consumption - period_threshold
+            waste_percentage = (waste_amount / period_threshold) * 100
+            return waste_amount, round(waste_percentage, 2)
+        else:
+            return 0.0, 0.0
+    except Exception as e:
+        print(f"Error calculating water waste for company: {e}")
+        return 0.0, 0.0
+
+def Analytics(df: pd.DataFrame, source_type: str, environment_type: str = "", facility_subtype: str = "", facility_size: str = "", gas_price: str = ""):
     source_type = source_type.lower()
     
     # Check if consumption column exists, if not, try to calculate from meter_value
@@ -132,6 +267,8 @@ def Analytics(df: pd.DataFrame, source_type: str, environment_type: str = "", fa
     for _, row in df.iterrows():
         if environment_type.lower() == 'house':
             cat, price, cost = process_row_cost_house(row['consumption'], source_type)
+        elif environment_type.lower() == 'company':
+            cat, price, cost = process_row_cost_company(row['consumption'], source_type, gas_price=gas_price)
         else:
             cat, price, cost = 0, 0.0, 0.0
             
@@ -218,11 +355,24 @@ def Analytics(df: pd.DataFrame, source_type: str, environment_type: str = "", fa
             waste_amount, waste_percentage = waste_electricity_house(display_total_consumption, facility_subtype, months)
         elif environment_type.lower() == "house" and source_type == "gas":
             waste_amount, waste_percentage = waste_gas_house(display_total_consumption, facility_subtype, months)
+        elif environment_type.lower() == "company" and source_type == "gas":
+            waste_amount, waste_percentage = waste_gas_company(display_total_consumption, facility_subtype, facility_size, months)
+        elif environment_type.lower() == "company" and source_type == "electricity":
+            waste_amount, waste_percentage = waste_electricity_company(display_total_consumption, facility_subtype, facility_size, months)
+        elif environment_type.lower() == "company" and source_type == "water":
+            waste_amount, waste_percentage = waste_water_company(display_total_consumption, facility_subtype, facility_size, months)
         
         waste_cost = None
         if waste_amount is not None:
             monthly_avg_consumption = display_total_consumption / months if months > 0 else 0
-            cat, rate, total_cost = process_row_cost_house(monthly_avg_consumption, source_type, period='monthly')
+            
+            if environment_type.lower() == 'company':
+                cat, rate, total_cost = process_row_cost_company(monthly_avg_consumption, source_type, period='monthly', gas_price=gas_price)
+            elif environment_type.lower() == 'house':
+                cat, rate, total_cost = process_row_cost_house(monthly_avg_consumption, source_type, period='monthly')
+            else:
+                rate = 0.0
+                
             waste_cost = round(waste_amount * rate, 2)
         
         analysis_results[f"last_{months}_months"] = {
