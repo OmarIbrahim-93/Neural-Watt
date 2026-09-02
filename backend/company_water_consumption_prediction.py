@@ -107,11 +107,12 @@ def forecast_universal_water(csv_path, sample_building_id=None):
     print("=" * 75)
     
     # Model Paths
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
     MODELS = {
-        "Target_Next_Day": "../models/water/company/daily_final_xgboost_model.pkl",
-        "Target_Next_Week": "../models/water/company/weekly_final_xgboost_model.pkl",
-        "Target_Next_Month": "../models/water/company/monthly_final_xgboost_model.pkl",
-        "Target_Next_Quarter": "../models/water/company/quarterly_final_xgboost_model.pkl"
+        "Target_Next_Day": os.path.join(BASE_DIR, "..", "Models", "Water", "Company", "daily_final_xgboost_model.pkl"),
+        "Target_Next_Week": os.path.join(BASE_DIR, "..", "Models", "Water", "Company", "weekly_final_xgboost_model.pkl"),
+        "Target_Next_Month": os.path.join(BASE_DIR, "..", "Models", "Water", "Company", "monthly_final_xgboost_model.pkl"),
+        "Target_Next_Quarter": os.path.join(BASE_DIR, "..", "Models", "Water", "Company", "quarterly_final_xgboost_model.pkl")
     }
 
     forecast_results = {}
@@ -161,8 +162,8 @@ def forecast_universal_water(csv_path, sample_building_id=None):
             current_step = history.sort_values("period").groupby("building_id").tail(1).copy()
             current_step["period"] = next_period
 
-            current_step["site"] = current_step["building_id"].apply(lambda x: x.split("")[0] if "" in x else "Unknown")
-            current_step["building_type"] = current_step["building_id"].apply(lambda x: x.split("")[1] if len(x.split("")) > 1 else "Unknown")
+            current_step["site"] = current_step["building_id"].apply(lambda x: x.split("_")[0] if "_" in x else "Unknown")
+            current_step["building_type"] = current_step["building_id"].apply(lambda x: x.split("_")[1] if len(x.split("_")) > 1 else "Unknown")
             current_step["building_encoded"] = current_step["building_id"].map(building_mapping).fillna(-1).astype("int32")
             current_step["site_encoded"] = current_step["site"].map(site_mapping).fillna(-1).astype("int32")
             current_step["building_type_encoded"] = current_step["building_type"].map(type_mapping).fillna(-1).astype("int32")

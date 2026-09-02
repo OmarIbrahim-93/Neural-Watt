@@ -10,6 +10,6 @@ def process_electricity_consumption(df, environment_type: str, facility_subtype:
         return process_factory_electricity(df, facility_subtype, holiday_usage, holiday_days, duration_months, data_handling_method)
     elif environment_type == 'company':
         from company_electricity_consumption_prediction import process_company_electricity
-        return process_company_electricity(df, facility_subtype, holiday_usage, holiday_days, duration_months, data_handling_method)
+        return process_company_electricity(df, facility_subtype, holiday_usage, holiday_days, duration_months, data_handling_method, tmp_path=csv_path, facility_size=facility_size)
     else:
         raise ValueError(f"Unknown environment type: {environment_type}")

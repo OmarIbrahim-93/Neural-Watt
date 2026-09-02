@@ -3,10 +3,14 @@ import numpy as np
 import joblib
 import os
 
-def forecast_universal_electricity(csv_path, model_path='../Models/Electricity/Company/neural_watts_electricity_universal_engine.pkl', sample_building_id=None):
+def forecast_universal_electricity(csv_path, model_path=None, sample_building_id=None):
     print("=" * 75)
     print("      NEURAL WATTS - UNIVERSAL ELECTRICITY INFERENCE ENGINE (1297 Bldgs)      ")
     print("=" * 75)
+    
+    if model_path is None:
+        BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+        model_path = os.path.join(BASE_DIR, "..", "Models", "Electricity", "Company", "neural_watts_electricity_universal_engine.pkl")
     
     # 1. تحميل الحزمة الشاملة
     if not os.path.exists(model_path):
@@ -132,6 +136,9 @@ def forecast_universal_electricity(csv_path, model_path='../Models/Electricity/C
         print(f"{label:<28} | {val:>15,.2f} kWh")
         
     print("=" * 75)
+    os.makedirs("CSV", exist_ok=True)
+    if 'eval_df' in locals():
+        eval_df.to_csv(os.path.join("CSV", "after_electric_company.csv"), index=False)
     return forecast_results
 
 def process_company_electricity(df, facility_subtype, holiday_usage, holiday_days, duration_months, data_handling_method, tmp_path=None, facility_size="small"):
@@ -143,14 +150,23 @@ def process_company_electricity(df, facility_subtype, holiday_usage, holiday_day
     else:
         csv_path = "Actual_daily_consumption.csv"
         if not os.path.exists(csv_path):
-            df.to_csv(csv_path, index=False)
+            if isinstance(df, pd.DataFrame):
+                df.to_csv(csv_path, index=False)
+            elif isinstance(df, str) and os.path.exists(df):
+                import shutil
+                shutil.copy(df, csv_path)
+                
+    os.makedirs("CSV", exist_ok=True)
+    import shutil
+    if os.path.exists(csv_path):
+        shutil.copy(csv_path, os.path.join("CSV", "before_electric_company.csv"))
             
     try:
         print("========== CSV Data Before Prediction ==========")
         print(pd.read_csv(csv_path))
         print("================================================")
         # Note the user provided "neural_watts_electricity_universal_engine.pkl"
-        forecast = forecast_universal_electricity(csv_path, model_path='../Models/Electricity/Company/neural_watts_electricity_universal_engine.pkl')
+        forecast = forecast_universal_electricity(csv_path)
     except Exception as e:
         print(f"Error in utility pipeline: {e}")
         forecast = {}
@@ -179,10 +195,18 @@ def process_company_electricity(df, facility_subtype, holiday_usage, holiday_day
             return round(waste_amt, 2), round(waste_pct, 2)
         return 0.0, 0.0
 
-    day_amt, day_pct = calc_waste(forecast.get("Target_Next_Day"), factor=1/30)
-    week_amt, week_pct = calc_waste(forecast.get("Target_Next_Week"), factor=1/4)
-    month_amt, month_pct = calc_waste(forecast.get("Target_Next_Month"), factor=1.0)
-    quarter_amt, quarter_pct = calc_waste(forecast.get("Target_Next_Quarter"), factor=3.0)
+    day_val = forecast.get("Target_Next_Day")
+    week_val = forecast.get("Target_Next_Week")
+    
+    day_pred = day_val * 4 if day_val is not None else None
+    week_pred = week_val * 4 if week_val is not None else None
+    month_pred = forecast.get("Target_Next_Month")
+    quarter_pred = forecast.get("Target_Next_Quarter")
+
+    day_amt, day_pct = calc_waste(day_pred, factor=1/30)
+    week_amt, week_pct = calc_waste(week_pred, factor=1/4)
+    month_amt, month_pct = calc_waste(month_pred, factor=1.0)
+    quarter_amt, quarter_pct = calc_waste(quarter_pred, factor=3.0)
 
     waste_dict = {
         "waste_day": day_amt,
@@ -196,10 +220,10 @@ def process_company_electricity(df, facility_subtype, holiday_usage, holiday_day
     }
 
     prediction_result = {
-        "next_day": forecast.get("Target_Next_Day") * 4,
-        "next_week": forecast.get("Target_Next_Week") * 4,
-        "next_month": forecast.get("Target_Next_Month"),
-        "next_quarter": forecast.get("Target_Next_Quarter"),
+        "next_day": day_pred,
+        "next_week": week_pred,
+        "next_month": month_pred,
+        "next_quarter": quarter_pred,
         "next_semi_annual": forecast.get("Target_Next_SemiAnnual"),
         "next_annual": forecast.get("Target_Next_Annual"),
         "waste": waste_dict

@@ -371,6 +371,50 @@ class _EnvironmentConfigScreenState extends State<EnvironmentConfigScreen> {
                         const SizedBox(height: 24),
                         ElevatedButton(
                           onPressed: () {
+                            if (_nameController.text.trim().isEmpty) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('$_nameLabel is mandatory'),
+                                  backgroundColor: Colors.redAccent,
+                                ),
+                              );
+                              return;
+                            }
+
+                            if (_locationController.text.trim().isEmpty) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Location is mandatory'),
+                                  backgroundColor: Colors.redAccent,
+                                ),
+                              );
+                              return;
+                            }
+
+                            if (_selectedDropdownValue == null ||
+                                _selectedDropdownValue!.isEmpty) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('$_dropdownLabel is mandatory'),
+                                  backgroundColor: Colors.redAccent,
+                                ),
+                              );
+                              return;
+                            }
+
+                            if ((widget.type == EnvironmentType.company ||
+                                    widget.type == EnvironmentType.factory) &&
+                                (_selectedSizeValue == null ||
+                                    _selectedSizeValue!.isEmpty)) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Company Size is mandatory'),
+                                  backgroundColor: Colors.redAccent,
+                                ),
+                              );
+                              return;
+                            }
+
                             if (widget.type == EnvironmentType.company &&
                                 widget.config.resource.toLowerCase() == 'gas') {
                               if (_gasPriceController.text.trim().isEmpty) {

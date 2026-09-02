@@ -342,7 +342,7 @@ def Analytics(df: pd.DataFrame, source_type: str, environment_type: str = "", fa
             int(round(total_consumption))
             if source_type == 'gas'
             else total_consumption / 60
-            if source_type == 'electricity'
+            if source_type == 'electricity' and environment_type.lower() == 'house'
             else total_consumption
         )
 
@@ -378,8 +378,8 @@ def Analytics(df: pd.DataFrame, source_type: str, environment_type: str = "", fa
         analysis_results[f"last_{months}_months"] = {
             "total_consumption": round(display_total_consumption, 2),
             "average_daily_consumption": round(avg_daily, 2),
-            "monthly_costs": {k: round(v / 60, 2) if source_type == 'electricity' else round(v, 2) for k, v in monthly_costs.items()},
-            "monthly_consumption": {k: round(v / 60, 2) if source_type == 'electricity' else round(v, 2) for k, v in monthly_consumption.items()},
+            "monthly_costs": {k: round(v / 60, 2) if source_type == 'electricity' and environment_type.lower() == 'house' else round(v, 2) for k, v in monthly_costs.items()},
+            "monthly_consumption": {k: round(v / 60, 2) if source_type == 'electricity' and environment_type.lower() == 'house' else round(v, 2) for k, v in monthly_consumption.items()},
             "waste_amount": waste_amount,
             "waste_percentage": waste_percentage,
             "waste_cost": waste_cost

@@ -883,13 +883,13 @@ class _ReviewConfigurationScreenState extends State<ReviewConfigurationScreen> {
     bool isEnabled = setup.holidayUsageEnabled;
     List<String> selectedDays = List.from(setup.holidayDays);
     final List<String> weekDays = [
-      'Monday',
-      'Tuesday',
-      'Wednesday',
-      'Thursday',
-      'Friday',
-      'Saturday',
-      'Sunday',
+      'Mon',
+      'Tue',
+      'Wed',
+      'Thu',
+      'Fri',
+      'Sat',
+      'Sun',
     ];
 
     showDialog(
@@ -922,7 +922,7 @@ class _ReviewConfigurationScreenState extends State<ReviewConfigurationScreen> {
                         ),
                         Expanded(
                           child: Text(
-                            'Enable Holiday Usage',
+                            'Select Non-Usage Days',
                             style: TextStyle(color: colors.textPrimary),
                           ),
                         ),

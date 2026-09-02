@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'home_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'utils/responsive.dart';
 import 'utils/theme.dart';
 import 'utils/theme_toggle_button.dart';
@@ -73,14 +74,19 @@ class _PredictionScreenState extends State<PredictionScreen> {
   String _formatPrediction(dynamic value) {
     if (value == null) return '0';
     if (value is num) {
-      if (value == value.toInt()) {
-        return value.toInt().toString();
+      int wholeDigits = value.truncate().abs().toString().length;
+      int allowedDecimals = 8 - wholeDigits;
+
+      String pattern = '#,##0';
+      if (allowedDecimals >= 3) {
+        pattern += '.###';
+      } else if (allowedDecimals == 2) {
+        pattern += '.##';
+      } else if (allowedDecimals == 1) {
+        pattern += '.#';
       }
-      // Remove trailing zeros using regex after fixing to 3 decimal places
-      return value
-          .toStringAsFixed(3)
-          .replaceAll(RegExp(r'0*$'), '')
-          .replaceAll(RegExp(r'\.$'), '');
+
+      return NumberFormat(pattern, 'en_US').format(value);
     }
     return value.toString();
   }
@@ -221,7 +227,7 @@ class _PredictionScreenState extends State<PredictionScreen> {
   }
 
   double _getWasteRatioValue() {
-    return _getCalculatedWasteRatio();
+    return _getCalculatedWasteRatio().clamp(0.0, 1.0);
   }
 
   String _getUnit() {
@@ -824,7 +830,7 @@ class _PredictionScreenState extends State<PredictionScreen> {
                 ),
                 const SizedBox(width: 4),
                 Text(
-                  cost.toStringAsFixed(2),
+                  _formatPrediction(cost),
                   style: TextStyle(
                     fontSize: 40,
                     fontWeight: FontWeight.bold,
