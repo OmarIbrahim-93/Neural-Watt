@@ -28,7 +28,9 @@ class AppThemeNotifier extends ValueNotifier<ThemeMode> {
 
   Future<void> toggleTheme(BuildContext context) async {
     final bool isCurrentlyDark = isDark(context);
-    final ThemeMode nextMode = isCurrentlyDark ? ThemeMode.light : ThemeMode.dark;
+    final ThemeMode nextMode = isCurrentlyDark
+        ? ThemeMode.light
+        : ThemeMode.dark;
     value = nextMode;
 
     try {
@@ -53,19 +55,68 @@ class AppColors {
 
   bool get isDark => Theme.of(context).brightness == Brightness.dark;
 
-  Color get scaffoldBackground => isDark ? const Color(0xFF090D16) : const Color(0xFFF8FAFF);
-  Color get cardBackground => isDark ? const Color(0xFF151D2A) : Colors.white;
-  Color get cardBorder => isDark ? const Color(0xFF243044) : const Color(0xFFE2E8F0);
-  Color get textPrimary => isDark ? const Color(0xFFF1F5F9) : const Color(0xFF0D1B3E);
-  Color get textSecondary => isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
-  Color get accentBlue => isDark ? const Color(0xFF3B82F6) : const Color(0xFF2563EB);
-  Color get accentContainer => isDark ? const Color(0x263B82F6) : const Color(0xFFEEF2FF);
-  Color get accentText => isDark ? const Color(0xFF60A5FA) : const Color(0xFF2563EB);
-  Color get inputFill => isDark ? const Color(0xFF1E293B) : Colors.white;
-  Color get inputBorder => isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
-  Color get navBarBackground => isDark ? const Color(0xFF0F172A) : Colors.white;
-  Color get navBarBorder => isDark ? const Color(0xFF1E293B) : const Color(0xFFE5E7EB);
-  Color get iconColor => isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
+  Color get scaffoldBackground =>
+      isDark ? const Color(0xFF0A0E14) : const Color(0xFFF8FAFF);
+  Color get cardBackground =>
+      isDark ? const Color(0xFF151B24) : Colors.white; // fallback
+  Color get elevatedSurface => isDark ? const Color(0xFF1C2431) : Colors.white;
+  Color get cardBorder =>
+      isDark ? const Color(0x1AFFFFFF) : const Color(0xFFE2E8F0);
+
+  Color get textPrimary =>
+      isDark ? const Color(0xFFE2E8F0) : const Color(0xFF0D1B3E);
+  Color get textSecondary =>
+      isDark ? const Color(0xFF8B9BB4) : const Color(0xFF64748B);
+  Color get textTertiary =>
+      isDark ? const Color(0xFF4A5568) : const Color(0xFF94A3B8);
+
+  Color get accentBlue => isDark
+      ? const Color(0xFFD49A2B)
+      : const Color.fromARGB(255, 97, 141, 236);
+  Color get accentContainer =>
+      isDark ? const Color(0x26D49A2B) : const Color(0xFFEEF2FF);
+  Color get accentText =>
+      isDark ? const Color(0xFFF5D07B) : const Color(0xFF2563EB);
+
+  Color get inputFill => isDark ? const Color(0xFF111721) : Colors.white;
+  Color get inputBorder =>
+      isDark ? const Color(0xFF2D3748) : const Color(0xFFE2E8F0);
+
+  Color get navBarBackground => isDark ? const Color(0xFF0A0E14) : Colors.white;
+  Color get navBarBorder =>
+      isDark ? const Color(0xFF151B24) : const Color(0xFFE5E7EB);
+
+  Color get iconColor =>
+      isDark ? const Color(0xFF8B9BB4) : const Color(0xFF64748B);
+
+  // Semantic Colors
+  Color get success =>
+      isDark ? const Color(0xFF2DD4BF) : const Color(0xFF10B981);
+  Color get warning =>
+      isDark ? const Color(0xFFFBBF24) : const Color(0xFFF59E0B);
+  Color get danger =>
+      isDark ? const Color(0xFFE17055) : const Color(0xFFEF4444);
+  Color get info => isDark ? const Color(0xFF8B9BB4) : const Color(0xFF3B82F6);
+
+  // Chart Colors
+  Color get chartPredicted =>
+      isDark ? const Color(0xFFD49A2B) : const Color(0xFF2563EB);
+  Color get chartActual =>
+      isDark ? const Color(0xFF4A5568) : const Color(0xFF94A3B8);
+
+  // Surface Gradient helper
+  LinearGradient? get cardGradient {
+    if (!isDark) return null;
+    return const LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: [
+        Color(0xFF151B24), // Lighter "lit" edge
+        Color(0xFF0D1219), // Deeper fading edge
+      ],
+      stops: [0.0, 1.0],
+    );
+  }
 }
 
 /// Application Theme Definitions

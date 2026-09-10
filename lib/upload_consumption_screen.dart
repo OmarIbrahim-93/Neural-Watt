@@ -3,6 +3,7 @@ import 'dart:io' as io;
 import 'package:flutter/material.dart';
 import 'dart:ui';
 import 'package:file_picker/file_picker.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'data_quality_screen.dart';
 import 'models/consumption_analysis_result.dart';
 import 'models/setup_config.dart';
@@ -54,14 +55,14 @@ class _UploadConsumptionScreenState extends State<UploadConsumptionScreen> {
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Selected: $_fileName')),
+            SnackBar(content: Text('selectedFile'.tr(args: [_fileName ?? '']))),
           );
         }
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error picking file: $e')),
+          SnackBar(content: Text('errorPickingFile'.tr(args: [e.toString()]))),
         );
       }
     }
@@ -108,7 +109,7 @@ class _UploadConsumptionScreenState extends State<UploadConsumptionScreen> {
         setState(() => _isAnalyzing = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Notice: $e. Displaying sample data preview.'),
+            content: Text('errorDisplayingSample'.tr(args: [e.toString()])),
             backgroundColor: Colors.orange,
             duration: const Duration(seconds: 4),
           ),
@@ -143,7 +144,7 @@ class _UploadConsumptionScreenState extends State<UploadConsumptionScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'NeuralWatt',
+          'appTitle'.tr(),
           style: TextStyle(color: colors.textPrimary, fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
@@ -171,7 +172,7 @@ class _UploadConsumptionScreenState extends State<UploadConsumptionScreen> {
                     children: [
                         const SizedBox(height: 20),
                         Text(
-                          'STEP 6 OF 6',
+                          'stepNof6'.tr(args: ['6']).toUpperCase(),
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.bold,
@@ -191,7 +192,7 @@ class _UploadConsumptionScreenState extends State<UploadConsumptionScreen> {
                         ),
                         const SizedBox(height: 32),
                         Text(
-                          'Upload Consumption File',
+                          'uploadConsumptionFile'.tr(),
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: 32,
@@ -201,7 +202,7 @@ class _UploadConsumptionScreenState extends State<UploadConsumptionScreen> {
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          'Import historical energy data to calibrate your predictive models. Ensure your CSV follows the standard NeuralWatt schema.',
+                          'uploadConsumptionDesc'.tr(),
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: 16,
@@ -246,7 +247,7 @@ class _UploadConsumptionScreenState extends State<UploadConsumptionScreen> {
                             ),
                           ),
                           child: _isAnalyzing
-                              ? const Row(
+                              ? Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     SizedBox(
@@ -259,14 +260,14 @@ class _UploadConsumptionScreenState extends State<UploadConsumptionScreen> {
                                     ),
                                     SizedBox(width: 12),
                                     Text(
-                                      'Analyzing Telemetry...',
-                                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                                      'analyzingTelemetry'.tr(),
+                                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                                     ),
                                   ],
                                 )
-                              : const Text(
-                                  'Continue',
-                                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                              : Text(
+                                  'continueBtn'.tr(),
+                                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                                 ),
                         ),
                         const SizedBox(height: 24),
@@ -314,7 +315,7 @@ class _UploadConsumptionScreenState extends State<UploadConsumptionScreen> {
                     ),
                     const SizedBox(height: 20),
                     Text(
-                      _fileName ?? 'Drag & Drop CSV',
+                      _fileName ?? 'dragDropCsv'.tr(),
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -325,7 +326,7 @@ class _UploadConsumptionScreenState extends State<UploadConsumptionScreen> {
                     const SizedBox(height: 8),
                     if (_fileName == null)
                       Text(
-                        'or browse your local files',
+                        'browseLocalFiles'.tr(),
                         style: TextStyle(
                           fontSize: 16,
                           color: colors.textSecondary,
@@ -352,7 +353,7 @@ class _UploadConsumptionScreenState extends State<UploadConsumptionScreen> {
                         ),
                         const SizedBox(width: 12),
                         Text(
-                          'Max 50MB',
+                          'max50mb'.tr(),
                           style: TextStyle(
                             fontSize: 12,
                             color: colors.textSecondary,
@@ -373,7 +374,7 @@ class _UploadConsumptionScreenState extends State<UploadConsumptionScreen> {
                       ),
                     ),
                     child: Text(
-                      _fileName == null ? 'Select File' : 'Change File',
+                      _fileName == null ? 'selectFile'.tr() : 'changeFile'.tr(),
                       style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                   ),
@@ -399,7 +400,7 @@ class _UploadConsumptionScreenState extends State<UploadConsumptionScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Schema Requirements',
+              'schemaRequirements'.tr(),
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
@@ -407,9 +408,9 @@ class _UploadConsumptionScreenState extends State<UploadConsumptionScreen> {
               ),
             ),
             const SizedBox(height: 16),
-            _buildRequirementRow("Must include 'timestamp' column (ISO 8601).", colors),
+            _buildRequirementRow('schemaReq1'.tr(), colors),
             const SizedBox(height: 12),
-            _buildRequirementRow("Must include 'consumption_kwh' column (Numeric).", colors),
+            _buildRequirementRow('schemaReq2'.tr(), colors),
           ],
         ),
       ),

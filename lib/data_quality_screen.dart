@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'handle_missing_data_screen.dart';
 import 'missing_data_detected_screen.dart';
 import 'models/consumption_analysis_result.dart';
@@ -29,7 +30,7 @@ class DataQualityScreen extends StatelessWidget {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'NeuralWatt',
+          'appTitle'.tr(),
           style: TextStyle(color: colors.textPrimary, fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
@@ -49,7 +50,7 @@ class DataQualityScreen extends StatelessWidget {
               children: [
                 const SizedBox(height: 12),
                 Text(
-                  'Data Quality',
+                  'dataQuality'.tr(),
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 28,
@@ -59,7 +60,7 @@ class DataQualityScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  'Review the completeness of your energy datasets before final processing.',
+                  'dataQualityDesc'.tr(),
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 14,
@@ -112,15 +113,15 @@ class DataQualityScreen extends StatelessWidget {
                       borderRadius: BorderRadius.circular(28),
                     ),
                   ),
-                  child: const Row(
+                  child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        'Final Review',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                        'finalReviewBtn'.tr(),
+                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                       ),
-                      SizedBox(width: 8),
-                      Icon(Icons.arrow_forward, size: 18),
+                      const SizedBox(width: 8),
+                      const Icon(Icons.arrow_forward, size: 18),
                     ],
                   ),
                 ),
@@ -150,7 +151,7 @@ class DataQualityScreen extends StatelessWidget {
             Align(
               alignment: Alignment.centerLeft,
               child: Text(
-                'DATA COMPLETENESS',
+                'dataCompleteness'.tr(),
                 style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.bold,
@@ -186,7 +187,7 @@ class DataQualityScreen extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      'Complete',
+                      'completeText'.tr(),
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
@@ -212,7 +213,7 @@ class DataQualityScreen extends StatelessWidget {
             Expanded(
               child: _buildStatCard(
                 icon: Icons.calendar_today_outlined,
-                label: 'EXPECTED DAYS',
+                label: 'expectedDays'.tr(),
                 value: '${result.expectedDaysCount}',
                 colors: colors,
               ),
@@ -221,7 +222,7 @@ class DataQualityScreen extends StatelessWidget {
             Expanded(
               child: _buildStatCard(
                 icon: Icons.check_circle,
-                label: 'AVAILABLE',
+                label: 'available'.tr(),
                 value: '${result.availableDaysCount}',
                 borderColor: colors.accentBlue,
                 iconColor: colors.accentBlue,
@@ -237,7 +238,7 @@ class DataQualityScreen extends StatelessWidget {
             Expanded(
               child: _buildStatCard(
                 icon: Icons.error_rounded,
-                label: 'MISSING',
+                label: 'missing'.tr(),
                 value: '${result.missingDaysCount}',
                 borderColor: const Color(0xFFDC2626),
                 iconColor: const Color(0xFFDC2626),
@@ -249,7 +250,7 @@ class DataQualityScreen extends StatelessWidget {
             Expanded(
               child: _buildStatCard(
                 icon: Icons.auto_awesome,
-                label: 'ESTIMATED',
+                label: 'estimated'.tr(),
                 value: '${result.missingDaysCount}',
                 borderColor: colors.isDark ? colors.accentBlue : const Color(0xFF0D1B3E),
                 iconColor: colors.isDark ? colors.accentBlue : const Color(0xFF0D1B3E),

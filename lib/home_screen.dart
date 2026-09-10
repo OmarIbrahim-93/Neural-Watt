@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'prediction_screen.dart';
 import 'analysis_setup_screen.dart';
 import 'analytics_screen.dart';
+import 'profile_screen.dart';
 import 'models/setup_config.dart';
 import 'utils/responsive.dart';
 import 'utils/theme.dart';
 import 'utils/theme_toggle_button.dart';
+import 'utils/units_localization.dart';
 
 class HomeScreen extends StatefulWidget {
   final int initialIndex;
@@ -41,7 +44,7 @@ class _HomeScreenState extends State<HomeScreen> {
         elevation: 0,
         centerTitle: true,
         title: Text(
-          'NeuralWatt',
+          'appTitle'.tr(),
           style: TextStyle(color: colors.textPrimary, fontWeight: FontWeight.bold),
         ),
         actions: const [
@@ -100,23 +103,19 @@ class _HomeScreenState extends State<HomeScreen> {
                 items: [
                   BottomNavigationBarItem(
                     icon: _buildNavIcon(Icons.home_filled, 0, colors),
-                    label: 'HOME',
+                    label: 'navHome'.tr(),
                   ),
                   BottomNavigationBarItem(
                     icon: _buildNavIcon(Icons.analytics_outlined, 1, colors),
-                    label: 'ANALYTICS',
+                    label: 'navAnalytics'.tr(),
                   ),
                   BottomNavigationBarItem(
                     icon: _buildNavIcon(Icons.auto_awesome_outlined, 2, colors),
-                    label: 'PREDICT',
+                    label: 'navPredict'.tr(),
                   ),
                   BottomNavigationBarItem(
-                    icon: _buildNavIcon(Icons.delete_outline, 3, colors),
-                    label: 'WASTE',
-                  ),
-                  BottomNavigationBarItem(
-                    icon: _buildNavIcon(Icons.person_outline, 4, colors),
-                    label: 'PROFILE',
+                    icon: _buildNavIcon(Icons.person_outline, 3, colors),
+                    label: 'navProfile'.tr(),
                   ),
                 ],
               ),
@@ -134,11 +133,9 @@ class _HomeScreenState extends State<HomeScreen> {
       case 1:
         return const AnalyticsScreen();
       case 2:
-        return _buildPlaceholderView('AI Predictive Models', 'Forecast energy demand, peak loads, and cost optimization.', Icons.auto_awesome_outlined, colors);
+        return _buildPlaceholderView('aiPredictiveModels'.tr(), 'forecastEnergyDemand'.tr(), Icons.auto_awesome_outlined, colors);
       case 3:
-        return _buildPlaceholderView('Waste & Anomaly Detection', 'Identify phantom loads, standby power waste, and thermal leaks.', Icons.delete_outline, colors);
-      case 4:
-        return _buildPlaceholderView('Facility Profile & Settings', 'Manage organization parameters, meters, and API integrations.', Icons.person_outline, colors);
+        return const ProfileScreen();
       default:
         return _buildHomeResourceSelection(isWide, colors);
     }
@@ -150,7 +147,7 @@ class _HomeScreenState extends State<HomeScreen> {
       children: [
         const SizedBox(height: 20),
         Text(
-          'Select Resource',
+          'selectResource'.tr(),
           textAlign: TextAlign.center,
           style: TextStyle(
             fontSize: 28,
@@ -160,7 +157,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         const SizedBox(height: 8),
         Text(
-          'Choose ONE resource to analyze.',
+          'chooseOneResource'.tr(),
           textAlign: TextAlign.center,
           style: TextStyle(
             fontSize: 16,
@@ -177,8 +174,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     children: [
                       Expanded(
                         child: _buildResourceCard(
-                          title: 'Electricity',
-                          unit: 'KWH',
+                          id: 'Electricity',
+                          title: 'electricity'.tr(),
+                          unit: UnitsLocalization.getLocalizedUnit(context, 'Electricity'),
                           icon: Icons.bolt_rounded,
                           iconColor: Colors.amber,
                           iconBgColor: colors.isDark ? const Color(0x33F59E0B) : const Color(0xFFFFFBEB),
@@ -188,8 +186,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       const SizedBox(width: 16),
                       Expanded(
                         child: _buildResourceCard(
-                          title: 'Water',
-                          unit: 'M³',
+                          id: 'Water',
+                          title: 'water'.tr(),
+                          unit: UnitsLocalization.getLocalizedUnit(context, 'Water'),
                           icon: Icons.water_drop_outlined,
                           iconColor: Colors.blue,
                           iconBgColor: colors.isDark ? const Color(0x333B82F6) : const Color(0xFFEFF6FF),
@@ -199,8 +198,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       const SizedBox(width: 16),
                       Expanded(
                         child: _buildResourceCard(
-                          title: 'Gas',
-                          unit: 'M³',
+                          id: 'Gas',
+                          title: 'gas'.tr(),
+                          unit: UnitsLocalization.getLocalizedUnit(context, 'Gas'),
                           icon: Icons.local_fire_department_outlined,
                           iconColor: Colors.indigo,
                           iconBgColor: colors.isDark ? const Color(0x336366F1) : const Color(0xFFEEF2FF),
@@ -212,8 +212,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 : Column(
                     children: [
                       _buildResourceCard(
-                        title: 'Electricity',
-                        unit: 'KWH',
+                        id: 'Electricity',
+                        title: 'electricity'.tr(),
+                        unit: UnitsLocalization.getLocalizedUnit(context, 'Electricity'),
                         icon: Icons.bolt_rounded,
                         iconColor: Colors.amber,
                         iconBgColor: colors.isDark ? const Color(0x33F59E0B) : const Color(0xFFFFFBEB),
@@ -221,8 +222,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       const SizedBox(height: 16),
                       _buildResourceCard(
-                        title: 'Water',
-                        unit: 'M³',
+                        id: 'Water',
+                        title: 'water'.tr(),
+                        unit: UnitsLocalization.getLocalizedUnit(context, 'Water'),
                         icon: Icons.water_drop_outlined,
                         iconColor: Colors.blue,
                         iconBgColor: colors.isDark ? const Color(0x333B82F6) : const Color(0xFFEFF6FF),
@@ -230,8 +232,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       const SizedBox(height: 16),
                       _buildResourceCard(
-                        title: 'Gas',
-                        unit: 'M³',
+                        id: 'Gas',
+                        title: 'gas'.tr(),
+                        unit: UnitsLocalization.getLocalizedUnit(context, 'Gas'),
                         icon: Icons.local_fire_department_outlined,
                         iconColor: Colors.indigo,
                         iconBgColor: colors.isDark ? const Color(0x336366F1) : const Color(0xFFEEF2FF),
@@ -300,6 +303,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildResourceCard({
+    required String id,
     required String title,
     required String unit,
     required IconData icon,
@@ -307,19 +311,19 @@ class _HomeScreenState extends State<HomeScreen> {
     required Color iconBgColor,
     required AppColors colors,
   }) {
-    bool isSelected = _selectedResource == title;
+    bool isSelected = _selectedResource == id;
 
     return RepaintBoundary(
       child: GestureDetector(
         onTap: () {
           setState(() {
-            _selectedResource = title;
+            _selectedResource = id;
           });
           Navigator.push(
             context,
             MaterialPageRoute(
               builder: (context) => AnalysisSetupScreen(
-                config: SetupConfig(resource: title),
+                config: SetupConfig(resource: id),
               ),
             ),
           );

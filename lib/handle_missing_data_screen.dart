@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'utils/responsive.dart';
 import 'utils/theme.dart';
 import 'utils/theme_toggle_button.dart';
@@ -35,7 +36,7 @@ class _HandleMissingDataScreenState extends State<HandleMissingDataScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'NeuralWatt',
+          'appTitle'.tr(),
           style: TextStyle(color: colors.textPrimary, fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
@@ -63,7 +64,7 @@ class _HandleMissingDataScreenState extends State<HandleMissingDataScreen> {
                     children: [
                         const SizedBox(height: 20),
                         Text(
-                          'SETUP STEP 3 OF 4',
+                          'stepNofM'.tr(args: ['3', '4']).toUpperCase(),
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: 12,
@@ -74,7 +75,7 @@ class _HandleMissingDataScreenState extends State<HandleMissingDataScreen> {
                         ),
                         const SizedBox(height: 12),
                         Text(
-                          'Zero Consumption Detected',
+                          'zeroConsumptionDetected'.tr(),
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: 28,
@@ -84,7 +85,7 @@ class _HandleMissingDataScreenState extends State<HandleMissingDataScreen> {
                         ),
                         const SizedBox(height: 12),
                         Text(
-                          'We found some days with zero consumption in your uploaded data.\nAre these zeros correct, or are they missing values?',
+                          'zeroConsumptionDesc'.tr(),
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: 16,
@@ -101,8 +102,8 @@ class _HandleMissingDataScreenState extends State<HandleMissingDataScreen> {
                               Expanded(
                                 child: _buildOptionCard(
                                   value: 1,
-                                  title: 'Estimate Missing Values',
-                                  subtitle: 'Some consumption may not have been recorded. Estimate these values using historical usage patterns.',
+                                  title: 'estimateMissing'.tr(),
+                                  subtitle: 'estimateMissingDesc'.tr(),
                                   showRecommended: true,
                                   colors: colors,
                                   child: _buildAutoIllustration(colors),
@@ -112,8 +113,8 @@ class _HandleMissingDataScreenState extends State<HandleMissingDataScreen> {
                               Expanded(
                                 child: _buildOptionCard(
                                   value: 2,
-                                  title: 'Keep Zeros',
-                                  subtitle: 'These zero values are correct. The resource was not used or the facility was closed on these days.',
+                                  title: 'keepZeros'.tr(),
+                                  subtitle: 'keepZerosDesc'.tr(),
                                   isSimple: true,
                                   colors: colors,
                                 ),
@@ -124,8 +125,8 @@ class _HandleMissingDataScreenState extends State<HandleMissingDataScreen> {
                           // Option 1: Auto Estimate
                           _buildOptionCard(
                             value: 1,
-                            title: 'Estimate Missing Values',
-                            subtitle: 'Some consumption may not have been recorded. Estimate these values using historical usage patterns.',
+                            title: 'estimateMissing'.tr(),
+                            subtitle: 'estimateMissingDesc'.tr(),
                             showRecommended: true,
                             colors: colors,
                             child: _buildAutoIllustration(colors),
@@ -135,8 +136,8 @@ class _HandleMissingDataScreenState extends State<HandleMissingDataScreen> {
                           // Option 2: Continue Without
                           _buildOptionCard(
                             value: 2,
-                            title: 'Keep Zeros',
-                            subtitle: 'These zero values are correct. The resource was not used or the facility was closed on these days.',
+                            title: 'keepZeros'.tr(),
+                            subtitle: 'keepZerosDesc'.tr(),
                             isSimple: true,
                             colors: colors,
                           ),
@@ -168,15 +169,15 @@ class _HandleMissingDataScreenState extends State<HandleMissingDataScreen> {
                               borderRadius: BorderRadius.circular(12),
                             ),
                           ),
-                          child: const Row(
+                          child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Text(
-                                'Final Review',
-                                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                                'finalReviewBtn'.tr(),
+                                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                               ),
-                              SizedBox(width: 8),
-                              Icon(Icons.arrow_forward, size: 20),
+                              const SizedBox(width: 8),
+                              const Icon(Icons.arrow_forward, size: 20),
                             ],
                           ),
                         ),
@@ -270,7 +271,7 @@ class _HandleMissingDataScreenState extends State<HandleMissingDataScreen> {
                                 borderRadius: BorderRadius.circular(20),
                               ),
                               child: Text(
-                                'RECOMMENDED',
+                                'recommended'.tr(),
                                 style: TextStyle(
                                   fontSize: 8,
                                   fontWeight: FontWeight.bold,

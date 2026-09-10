@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'environment_config_screen.dart';
 import 'models/consumption_analysis_result.dart';
 import 'models/setup_config.dart';
@@ -39,13 +40,13 @@ class _ReviewConfigurationScreenState extends State<ReviewConfigurationScreen> {
     final setup = widget.config ?? SetupConfig();
 
     final String targetFacility = setup.facilityName.isEmpty
-        ? 'ABC Factory'
+        ? 'abcFactory'.tr()
         : setup.facilityName;
     final String facilityLocation = setup.facilityLocation.isEmpty
-        ? 'Industrial Zone, Sector 4'
+        ? 'industrialZone'.tr()
         : setup.facilityLocation;
     final String resource = setup.resource.isEmpty
-        ? 'Electricity'
+        ? 'electricityResource'.tr()
         : setup.resource;
     final bool holidayUsageEnabled = setup.holidayUsageEnabled;
 
@@ -62,7 +63,7 @@ class _ReviewConfigurationScreenState extends State<ReviewConfigurationScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'NeuralWatt',
+          'appTitle'.tr(),
           style: TextStyle(
             color: colors.textPrimary,
             fontWeight: FontWeight.bold,
@@ -82,7 +83,7 @@ class _ReviewConfigurationScreenState extends State<ReviewConfigurationScreen> {
               children: [
                 const SizedBox(height: 12),
                 Text(
-                  'Review Configuration',
+                  'reviewConfiguration'.tr(),
                   style: TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
@@ -91,7 +92,7 @@ class _ReviewConfigurationScreenState extends State<ReviewConfigurationScreen> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Verify your prediction parameters before initialization.',
+                  'reviewConfigDesc'.tr(),
                   style: TextStyle(
                     fontSize: 16,
                     color: colors.textSecondary,
@@ -207,7 +208,7 @@ class _ReviewConfigurationScreenState extends State<ReviewConfigurationScreen> {
                               });
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
-                                  content: Text('Error: $e'),
+                                  content: Text('${'errorPrefix'.tr()}$e'),
                                   backgroundColor: Colors.red,
                                 ),
                               );
@@ -225,10 +226,10 @@ class _ReviewConfigurationScreenState extends State<ReviewConfigurationScreen> {
                     ),
                   ),
                   child: _isPredicting
-                      ? const Row(
+                      ? Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            SizedBox(
+                            const SizedBox(
                               width: 20,
                               height: 20,
                               child: CircularProgressIndicator(
@@ -236,24 +237,24 @@ class _ReviewConfigurationScreenState extends State<ReviewConfigurationScreen> {
                                 strokeWidth: 2,
                               ),
                             ),
-                            SizedBox(width: 12),
+                            const SizedBox(width: 12),
                             Text(
-                              'Sending Data...',
-                              style: TextStyle(
+                              'sendingData'.tr(),
+                              style: const TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
                           ],
                         )
-                      : const Row(
+                      : Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.auto_awesome, size: 20),
-                            SizedBox(width: 12),
+                            const Icon(Icons.auto_awesome, size: 20),
+                            const SizedBox(width: 12),
                             Text(
-                              'Predict',
-                              style: TextStyle(
+                              'predictBtn'.tr(),
+                              style: const TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -334,7 +335,7 @@ class _ReviewConfigurationScreenState extends State<ReviewConfigurationScreen> {
             return AlertDialog(
               backgroundColor: colors.cardBackground,
               title: Text(
-                'Edit Configuration',
+                'editConfig'.tr(),
                 style: TextStyle(color: colors.textPrimary),
               ),
               content: SingleChildScrollView(
@@ -347,10 +348,10 @@ class _ReviewConfigurationScreenState extends State<ReviewConfigurationScreen> {
                       decoration: InputDecoration(
                         labelText:
                             setup.environmentType == EnvironmentType.house
-                            ? 'House Name'
+                            ? 'houseName'.tr()
                             : setup.environmentType == EnvironmentType.company
-                            ? 'Company Name'
-                            : 'Factory Name',
+                            ? 'companyName'.tr()
+                            : 'factoryName'.tr(),
                         labelStyle: TextStyle(color: colors.textSecondary),
                         enabledBorder: OutlineInputBorder(
                           borderSide: BorderSide(color: colors.cardBorder),
@@ -367,10 +368,10 @@ class _ReviewConfigurationScreenState extends State<ReviewConfigurationScreen> {
                       decoration: InputDecoration(
                         labelText:
                             setup.environmentType == EnvironmentType.house
-                            ? 'House Location'
+                            ? 'houseLocation'.tr()
                             : setup.environmentType == EnvironmentType.company
-                            ? 'Company Location'
-                            : 'Factory Location',
+                            ? 'companyLocation'.tr()
+                            : 'factoryLocation'.tr(),
                         labelStyle: TextStyle(color: colors.textSecondary),
                         enabledBorder: OutlineInputBorder(
                           borderSide: BorderSide(color: colors.cardBorder),
@@ -386,7 +387,7 @@ class _ReviewConfigurationScreenState extends State<ReviewConfigurationScreen> {
                         controller: typeController,
                         style: TextStyle(color: colors.textPrimary),
                         decoration: InputDecoration(
-                          labelText: 'Number of Persons',
+                          labelText: 'numPersons'.tr(),
                           labelStyle: TextStyle(color: colors.textSecondary),
                           enabledBorder: OutlineInputBorder(
                             borderSide: BorderSide(color: colors.cardBorder),
@@ -405,8 +406,8 @@ class _ReviewConfigurationScreenState extends State<ReviewConfigurationScreen> {
                         decoration: InputDecoration(
                           labelText:
                               setup.environmentType == EnvironmentType.company
-                              ? 'Company Type'
-                              : 'Industry Type',
+                              ? 'companyType'.tr()
+                              : 'industryType'.tr(),
                           labelStyle: TextStyle(color: colors.textSecondary),
                           enabledBorder: OutlineInputBorder(
                             borderSide: BorderSide(color: colors.cardBorder),
@@ -437,8 +438,8 @@ class _ReviewConfigurationScreenState extends State<ReviewConfigurationScreen> {
                         decoration: InputDecoration(
                           labelText:
                               setup.environmentType == EnvironmentType.company
-                              ? 'Company Size'
-                              : 'Factory Size',
+                              ? 'companySize'.tr()
+                              : 'factorySize'.tr(),
                           labelStyle: TextStyle(color: colors.textSecondary),
                           enabledBorder: OutlineInputBorder(
                             borderSide: BorderSide(color: colors.cardBorder),
@@ -470,7 +471,7 @@ class _ReviewConfigurationScreenState extends State<ReviewConfigurationScreen> {
                 TextButton(
                   onPressed: () => Navigator.pop(context),
                   child: Text(
-                    'Cancel',
+                    'cancelBtn'.tr(),
                     style: TextStyle(color: colors.textSecondary),
                   ),
                 ),
@@ -497,8 +498,8 @@ class _ReviewConfigurationScreenState extends State<ReviewConfigurationScreen> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: colors.accentBlue,
                   ),
-                  child: const Text(
-                    'Save',
+                  child: Text(
+                    'saveBtn'.tr(),
                     style: TextStyle(color: Colors.white),
                   ),
                 ),
@@ -516,21 +517,21 @@ class _ReviewConfigurationScreenState extends State<ReviewConfigurationScreen> {
     String name,
     String location,
   ) {
-    String topLabel = 'TARGET FACILITY';
+    String topLabel = 'targetFacility'.tr();
     if (setup.facilitySubType.isNotEmpty) {
       switch (setup.environmentType) {
         case EnvironmentType.house:
-          topLabel = 'NUMBER OF PERSONS: ${setup.facilitySubType}';
+          topLabel = 'numOfPersons'.tr(args: [setup.facilitySubType]);
           break;
         case EnvironmentType.company:
-          topLabel = 'COMPANY TYPE: ${setup.facilitySubType.toUpperCase()}';
+          topLabel = 'companyTypeVal'.tr(args: [setup.facilitySubType.toUpperCase()]);
           if (setup.facilitySize.isNotEmpty)
-            topLabel += ' | SIZE: ${setup.facilitySize.toUpperCase()}';
+            topLabel += 'sizeVal'.tr(args: [setup.facilitySize.toUpperCase()]);
           break;
         case EnvironmentType.factory:
-          topLabel = 'INDUSTRY TYPE: ${setup.facilitySubType.toUpperCase()}';
+          topLabel = 'industryTypeVal'.tr(args: [setup.facilitySubType.toUpperCase()]);
           if (setup.facilitySize.isNotEmpty)
-            topLabel += ' | SIZE: ${setup.facilitySize.toUpperCase()}';
+            topLabel += 'sizeVal'.tr(args: [setup.facilitySize.toUpperCase()]);
           break;
       }
     }
@@ -607,8 +608,8 @@ class _ReviewConfigurationScreenState extends State<ReviewConfigurationScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'RESOURCE',
+          Text(
+            'resource'.tr().toUpperCase(),
             style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.bold,
@@ -622,7 +623,7 @@ class _ReviewConfigurationScreenState extends State<ReviewConfigurationScreen> {
               Icon(icon, color: Colors.white, size: 28),
               const SizedBox(width: 12),
               Text(
-                resource,
+                resource.toLowerCase().tr(),
                 style: const TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
@@ -644,7 +645,7 @@ class _ReviewConfigurationScreenState extends State<ReviewConfigurationScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'FORECAST HORIZON',
+            'forecastHorizon'.tr().toUpperCase(),
             style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.bold,
@@ -667,7 +668,7 @@ class _ReviewConfigurationScreenState extends State<ReviewConfigurationScreen> {
               ),
               const SizedBox(width: 8),
               Text(
-                'Months',
+                'monthsText'.tr(),
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
@@ -692,7 +693,7 @@ class _ReviewConfigurationScreenState extends State<ReviewConfigurationScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'DATA HANDLING',
+            'dataHandling'.tr().toUpperCase(),
             style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.bold,
@@ -708,7 +709,7 @@ class _ReviewConfigurationScreenState extends State<ReviewConfigurationScreen> {
                 const SizedBox(width: 8),
               ],
               Text(
-                method,
+                method == 'Estimate Missing Values' ? 'estimateMissing'.tr() : 'keepZeros'.tr(),
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -720,8 +721,8 @@ class _ReviewConfigurationScreenState extends State<ReviewConfigurationScreen> {
           const SizedBox(height: 8),
           Text(
             method == 'Estimate Missing Values'
-                ? 'Missing data points will be synthesized using historical patterns.'
-                : 'Using actual available data. No synthetic estimation applied.',
+                ? 'estimateMissingSynthDesc'.tr()
+                : 'keepZerosActualDesc'.tr(),
             style: TextStyle(
               fontSize: 13,
               color: colors.textSecondary,
@@ -735,7 +736,7 @@ class _ReviewConfigurationScreenState extends State<ReviewConfigurationScreen> {
           ),
 
           Text(
-            'DATA QUALITY SCORE',
+            'dataQualityScore'.tr(),
             style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.bold,
@@ -773,8 +774,8 @@ class _ReviewConfigurationScreenState extends State<ReviewConfigurationScreen> {
           const SizedBox(height: 12),
           Text(
             qualityScore >= 90
-                ? 'Excellent base for prediction.'
-                : 'Moderate base for prediction.',
+                ? 'excellentBase'.tr()
+                : 'moderateBase'.tr(),
             style: TextStyle(fontSize: 13, color: colors.textSecondary),
           ),
         ],
@@ -806,7 +807,7 @@ class _ReviewConfigurationScreenState extends State<ReviewConfigurationScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Holiday Usage',
+                  'holidayUsage'.tr(),
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -815,7 +816,7 @@ class _ReviewConfigurationScreenState extends State<ReviewConfigurationScreen> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Adjusts baseline for known regional holidays.',
+                  'holidayUsageDesc'.tr(),
                   style: TextStyle(
                     fontSize: 13,
                     color: colors.textSecondary,
@@ -826,7 +827,7 @@ class _ReviewConfigurationScreenState extends State<ReviewConfigurationScreen> {
                     setup.holidayDays.isNotEmpty) ...[
                   const SizedBox(height: 8),
                   Text(
-                    'Off-days: ${setup.holidayDays.join(', ')}',
+                    'offDaysList'.tr(args: [setup.holidayDays.join(', ')]),
                     style: TextStyle(
                       fontSize: 12,
                       color: colors.accentBlue,
@@ -853,7 +854,7 @@ class _ReviewConfigurationScreenState extends State<ReviewConfigurationScreen> {
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
-                  setup.holidayUsageEnabled ? 'Enabled' : 'Disabled',
+                  setup.holidayUsageEnabled ? 'enabled'.tr() : 'disabled'.tr(),
                   style: const TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
@@ -883,13 +884,13 @@ class _ReviewConfigurationScreenState extends State<ReviewConfigurationScreen> {
     bool isEnabled = setup.holidayUsageEnabled;
     List<String> selectedDays = List.from(setup.holidayDays);
     final List<String> weekDays = [
-      'Mon',
-      'Tue',
-      'Wed',
-      'Thu',
-      'Fri',
-      'Sat',
-      'Sun',
+      'mon'.tr(),
+      'tue'.tr(),
+      'wed'.tr(),
+      'thu'.tr(),
+      'fri'.tr(),
+      'sat'.tr(),
+      'sun'.tr(),
     ];
 
     showDialog(
@@ -900,7 +901,7 @@ class _ReviewConfigurationScreenState extends State<ReviewConfigurationScreen> {
             return AlertDialog(
               backgroundColor: colors.cardBackground,
               title: Text(
-                'Edit Holiday Usage',
+                'editHolidayUsage'.tr(),
                 style: TextStyle(color: colors.textPrimary),
               ),
               content: SingleChildScrollView(
@@ -922,13 +923,12 @@ class _ReviewConfigurationScreenState extends State<ReviewConfigurationScreen> {
                         ),
                         Expanded(
                           child: Text(
-                            'Select Non-Usage Days',
+                            'selectNonUsageDays'.tr(),
                             style: TextStyle(color: colors.textPrimary),
                           ),
                         ),
                         Tooltip(
-                          message:
-                              'Adjusts baseline prediction by considering the selected days as holidays or off-days with lower resource usage.',
+                          message: 'holidayUsageTooltip'.tr(),
                           child: Icon(
                             Icons.help_outline,
                             color: colors.textSecondary,
@@ -940,7 +940,7 @@ class _ReviewConfigurationScreenState extends State<ReviewConfigurationScreen> {
                     if (isEnabled) ...[
                       const SizedBox(height: 16),
                       Text(
-                        'Select off-days:',
+                        'selectOffDays'.tr(),
                         style: TextStyle(
                           color: colors.textPrimary,
                           fontWeight: FontWeight.bold,
@@ -977,7 +977,7 @@ class _ReviewConfigurationScreenState extends State<ReviewConfigurationScreen> {
                 TextButton(
                   onPressed: () => Navigator.pop(context),
                   child: Text(
-                    'Cancel',
+                    'cancelBtn'.tr(),
                     style: TextStyle(color: colors.textSecondary),
                   ),
                 ),
@@ -992,8 +992,8 @@ class _ReviewConfigurationScreenState extends State<ReviewConfigurationScreen> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: colors.accentBlue,
                   ),
-                  child: const Text(
-                    'Save',
+                  child: Text(
+                    'saveBtn'.tr(),
                     style: TextStyle(color: Colors.white),
                   ),
                 ),

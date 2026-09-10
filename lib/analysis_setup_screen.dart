@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'environment_config_screen.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'models/setup_config.dart';
 import 'utils/responsive.dart';
 import 'utils/theme.dart';
@@ -32,7 +33,7 @@ class _AnalysisSetupScreenState extends State<AnalysisSetupScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'NeuralWatt',
+          'appTitle'.tr(),
           style: TextStyle(
             color: colors.textPrimary,
             fontWeight: FontWeight.bold,
@@ -50,7 +51,7 @@ class _AnalysisSetupScreenState extends State<AnalysisSetupScreen> {
           children: [
             const SizedBox(height: 20),
             Text(
-              'Step 2 of 6',
+              'step2of6'.tr(),
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 14,
@@ -70,7 +71,7 @@ class _AnalysisSetupScreenState extends State<AnalysisSetupScreen> {
             ),
             const SizedBox(height: 32),
             Text(
-              'What do you want to analyze?',
+              'whatAnalyze'.tr(),
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 28,
@@ -81,7 +82,7 @@ class _AnalysisSetupScreenState extends State<AnalysisSetupScreen> {
             ),
             const SizedBox(height: 12),
             Text(
-              'Select an environment to begin monitoring energy flows.',
+              'selectEnvironmentDesc'.tr(),
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 16, color: colors.textSecondary),
             ),
@@ -96,8 +97,8 @@ class _AnalysisSetupScreenState extends State<AnalysisSetupScreen> {
                           Expanded(
                             child: _buildEnvironmentCard(
                               context,
-                              title: 'House',
-                              subtitle: 'Analyze household consumption',
+                              title: 'house'.tr(),
+                              subtitle: 'analyzeHouse'.tr(),
                               icon: Icons.home_rounded,
                               type: EnvironmentType.house,
                               colors: colors,
@@ -107,8 +108,8 @@ class _AnalysisSetupScreenState extends State<AnalysisSetupScreen> {
                           Expanded(
                             child: _buildEnvironmentCard(
                               context,
-                              title: 'Company',
-                              subtitle: 'Analyze company/building usage',
+                              title: 'company'.tr(),
+                              subtitle: 'analyzeCompany'.tr(),
                               icon: Icons.business_rounded,
                               type: EnvironmentType.company,
                               colors: colors,
@@ -117,11 +118,12 @@ class _AnalysisSetupScreenState extends State<AnalysisSetupScreen> {
                         ],
                       )
                     : Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           _buildEnvironmentCard(
                             context,
-                            title: 'House',
-                            subtitle: 'Analyze household consumption',
+                            title: 'house'.tr(),
+                            subtitle: 'analyzeHouse'.tr(),
                             icon: Icons.home_rounded,
                             type: EnvironmentType.house,
                             colors: colors,
@@ -129,8 +131,8 @@ class _AnalysisSetupScreenState extends State<AnalysisSetupScreen> {
                           const SizedBox(height: 16),
                           _buildEnvironmentCard(
                             context,
-                            title: 'Company',
-                            subtitle: 'Analyze company/building usage',
+                            title: 'company'.tr(),
+                            subtitle: 'analyzeCompany'.tr(),
                             icon: Icons.business_rounded,
                             type: EnvironmentType.company,
                             colors: colors,

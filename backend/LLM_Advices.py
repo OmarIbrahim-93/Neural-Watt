@@ -212,6 +212,9 @@ def generate_energy_advice(facility_data: dict) -> dict:
             else:
                 s_title = "Quarterly Saving Tip"
 
+            c_type_value = "category_maintenance" if current_category == 1 else "category_reduction"
+            c_title = f"Maintain {title_horizon_c} Efficiency" if current_category == 1 else f"Reduce {title_horizon_c} Consumption"
+
             messages = [
                 {
                     "type": "waste_reduction",
@@ -219,8 +222,8 @@ def generate_energy_advice(facility_data: dict) -> dict:
                     "message": w_msg.replace(". ", ".\n\n")
                 },
                 {
-                    "type": "consumption_reduction",
-                    "title": f"Reduce {title_horizon_c} Consumption",
+                    "type": c_type_value,
+                    "title": c_title,
                     "message": c_msg.replace(". ", ".\n\n")
                 },
                 {

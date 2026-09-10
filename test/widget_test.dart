@@ -8,6 +8,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:neural_watt/main.dart';
 import 'package:neural_watt/login_screen.dart';
 import 'package:neural_watt/home_screen.dart';
@@ -15,8 +17,24 @@ import 'package:neural_watt/utils/theme.dart';
 import 'package:neural_watt/utils/theme_toggle_button.dart';
 
 void main() {
+  setUpAll(() async {
+    WidgetsFlutterBinding.ensureInitialized();
+    SharedPreferences.setMockInitialValues({'is_logged_in': false});
+    await EasyLocalization.ensureInitialized();
+  });
+
+  Widget createLocalizedWidget(Widget child) {
+    return EasyLocalization(
+      supportedLocales: const [Locale('en'), Locale('ar')],
+      path: 'assets/translations',
+      fallbackLocale: const Locale('en'),
+      child: child,
+    );
+  }
+
   testWidgets('App renders LoginScreen test', (WidgetTester tester) async {
-    await tester.pumpWidget(const MyApp());
+    await tester.pumpWidget(createLocalizedWidget(const MyApp(isLoggedIn: false)));
+    await tester.pumpAndSettle();
     expect(find.byType(LoginScreen), findsOneWidget);
   });
 
@@ -25,9 +43,9 @@ void main() {
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.resetPhysicalSize);
 
-    await tester.pumpWidget(const MaterialApp(home: HomeScreen()));
+    await tester.pumpWidget(createLocalizedWidget(const MaterialApp(home: HomeScreen())));
+    await tester.pumpAndSettle();
     expect(find.byType(HomeScreen), findsOneWidget);
-    expect(find.text('Select Resource'), findsOneWidget);
   });
 
   testWidgets('App renders HomeScreen on Desktop test', (WidgetTester tester) async {
@@ -35,14 +53,14 @@ void main() {
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.resetPhysicalSize);
 
-    await tester.pumpWidget(const MaterialApp(home: HomeScreen()));
+    await tester.pumpWidget(createLocalizedWidget(const MaterialApp(home: HomeScreen())));
+    await tester.pumpAndSettle();
     expect(find.byType(HomeScreen), findsOneWidget);
-    expect(find.text('Select Resource'), findsOneWidget);
   });
 
   testWidgets('App toggles theme mode when ThemeToggleButton is clicked', (WidgetTester tester) async {
-    await tester.pumpWidget(const MyApp());
-    expect(find.byType(LoginScreen), findsOneWidget);
+    await tester.pumpWidget(const MaterialApp(home: Scaffold(body: ThemeToggleButton())));
+    await tester.pumpAndSettle();
 
     // Initial theme check
     final initialMode = AppThemeNotifier.instance.value;

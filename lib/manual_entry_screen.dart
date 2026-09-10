@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'handle_missing_data_screen.dart';
 import 'models/consumption_analysis_result.dart';
 import 'models/setup_config.dart';
@@ -52,7 +53,7 @@ class _ManualEntryScreenState extends State<ManualEntryScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'NeuralWatt',
+          'appTitle'.tr(),
           style: TextStyle(color: colors.textPrimary, fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
@@ -72,7 +73,7 @@ class _ManualEntryScreenState extends State<ManualEntryScreen> {
               children: [
                 const SizedBox(height: 12),
                 Text(
-                  'Manual Data Entry',
+                  'manualDataEntry'.tr(),
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 28,
@@ -82,7 +83,7 @@ class _ManualEntryScreenState extends State<ManualEntryScreen> {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  'Please provide meter values for the following missing dates.',
+                  'manualDataEntryDesc'.tr(),
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 16,
@@ -96,7 +97,7 @@ class _ManualEntryScreenState extends State<ManualEntryScreen> {
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 32.0),
                     child: Text(
-                      'No missing days to enter!',
+                      'noMissingDaysEntry'.tr(),
                       textAlign: TextAlign.center,
                       style: TextStyle(color: colors.textSecondary, fontSize: 16),
                     ),
@@ -133,7 +134,7 @@ class _ManualEntryScreenState extends State<ManualEntryScreen> {
                                 keyboardType: TextInputType.number,
                                 style: TextStyle(color: colors.textPrimary),
                                 decoration: InputDecoration(
-                                  hintText: 'Value',
+                                  hintText: 'valueHint'.tr(),
                                   hintStyle: TextStyle(color: colors.textSecondary),
                                   filled: true,
                                   fillColor: colors.isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
@@ -183,15 +184,15 @@ class _ManualEntryScreenState extends State<ManualEntryScreen> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  child: const Row(
+                  child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        'Save & Continue',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        'saveContinueBtn'.tr(),
+                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                       ),
-                      SizedBox(width: 8),
-                      Icon(Icons.arrow_forward, size: 20),
+                      const SizedBox(width: 8),
+                      const Icon(Icons.arrow_forward, size: 20),
                     ],
                   ),
                 ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'handle_missing_data_screen.dart';
 import 'manual_entry_screen.dart';
 import 'models/consumption_analysis_result.dart';
@@ -29,7 +30,7 @@ class MissingDataDetectedScreen extends StatelessWidget {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'NeuralWatt',
+          'appTitle'.tr(),
           style: TextStyle(color: colors.textPrimary, fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
@@ -68,7 +69,7 @@ class MissingDataDetectedScreen extends StatelessWidget {
                           children: [
                             const SizedBox(height: 20),
                             Text(
-                              'Do you have values for these\ndates?',
+                              'haveValuesForDates'.tr(),
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                 fontSize: 22,
@@ -79,8 +80,8 @@ class MissingDataDetectedScreen extends StatelessWidget {
                             const SizedBox(height: 24),
                             _buildSelectionBox(
                               icon: Icons.edit_note,
-                              title: 'Yes',
-                              subtitle: 'Proceed to manual entry',
+                              title: 'yes'.tr(),
+                              subtitle: 'proceedManualEntry'.tr(),
                               onTap: () {
                                 Navigator.push(
                                   context,
@@ -97,7 +98,7 @@ class MissingDataDetectedScreen extends StatelessWidget {
                             const SizedBox(height: 16),
                             _buildSelectionBox(
                               icon: Icons.close,
-                              title: 'No',
+                              title: 'no'.tr(),
                               onTap: () {
                                 Navigator.push(
                                   context,
@@ -124,7 +125,7 @@ class MissingDataDetectedScreen extends StatelessWidget {
                   _buildIdentifiedGapsBox(colors, result),
                   const SizedBox(height: 40),
                   Text(
-                    'Do you have values for these\ndates?',
+                    'haveValuesForDates'.tr(),
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 20,
@@ -135,8 +136,8 @@ class MissingDataDetectedScreen extends StatelessWidget {
                   const SizedBox(height: 24),
                   _buildSelectionBox(
                     icon: Icons.edit_note,
-                    title: 'Yes',
-                    subtitle: 'Proceed to manual entry',
+                    title: 'yes'.tr(),
+                    subtitle: 'proceedManualEntry'.tr(),
                     onTap: () {
                       Navigator.push(
                         context,
@@ -153,7 +154,7 @@ class MissingDataDetectedScreen extends StatelessWidget {
                   const SizedBox(height: 16),
                   _buildSelectionBox(
                     icon: Icons.close,
-                    title: 'No',
+                    title: 'no'.tr(),
                     onTap: () {
                       Navigator.push(
                         context,
@@ -197,7 +198,7 @@ class MissingDataDetectedScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Missing Data\nDetected',
+                'missingDataDetected'.tr(),
                 style: TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
@@ -207,7 +208,7 @@ class MissingDataDetectedScreen extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               Text(
-                "We've identified gaps in your energy consumption dataset. To ensure accurate predictions and analytics, please review the isolated and consecutive missing dates below.",
+                'missingDataDesc'.tr(),
                 style: TextStyle(
                   fontSize: 14,
                   color: colors.textSecondary,
@@ -237,7 +238,7 @@ class MissingDataDetectedScreen extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'IDENTIFIED GAPS',
+                'identifiedGaps'.tr(),
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
@@ -246,7 +247,7 @@ class MissingDataDetectedScreen extends StatelessWidget {
                 ),
               ),
               Text(
-                '${gaps.length} Dates Total',
+                'datesTotal'.tr(args: [gaps.length.toString()]),
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
@@ -260,7 +261,7 @@ class MissingDataDetectedScreen extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 16.0),
               child: Text(
-                'No missing days detected in period!',
+                'noMissingDays'.tr(),
                 style: TextStyle(color: colors.textSecondary, fontSize: 14),
               ),
             )
@@ -272,7 +273,7 @@ class MissingDataDetectedScreen extends StatelessWidget {
                 padding: const EdgeInsets.only(bottom: 8.0),
                 child: _buildGapItem(
                   date: gap.day,
-                  tag: isFull ? 'Full Day Missing (${gap.missingHours}h)' : 'Partial (${gap.missingHours}h)',
+                  tag: isFull ? 'fullDayMissing'.tr(args: [gap.missingHours.toString()]) : 'partialMissing'.tr(args: [gap.missingHours.toString()]),
                   tagColor: isFull ? colors.accentBlue : colors.accentContainer,
                   textColor: isFull ? Colors.white : colors.accentBlue,
                   colors: colors,
@@ -294,7 +295,7 @@ class MissingDataDetectedScreen extends StatelessWidget {
     bool isIndented = false,
   }) {
     return Container(
-      margin: EdgeInsets.only(left: isIndented ? 16 : 0),
+      margin: EdgeInsetsDirectional.only(start: isIndented ? 16 : 0),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
       decoration: BoxDecoration(
         color: colors.isDark ? const Color(0xFF1E293B) : const Color(0xFFF8FAFF),

@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'login_screen.dart';
 import 'utils/responsive.dart';
-
+import 'utils/theme_toggle_button.dart';
+import 'utils/theme.dart';
+import 'data/utility_companies.dart';
+import 'widgets/utility_company_picker.dart';
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
 
@@ -11,37 +15,47 @@ class SignupScreen extends StatefulWidget {
 }
 
 class _SignupScreenState extends State<SignupScreen> {
-  final _nameController = TextEditingController();
+  String _selectedSector = 'electricity';
+  UtilityCompany? _selectedCompany;
+  final _regionController = TextEditingController();
   final _emailController = TextEditingController();
+  final _empNameController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
   bool _isPasswordVisible = false;
+  bool _isConfirmPasswordVisible = false;
 
-  static const _inputBorder = OutlineInputBorder(
-    borderRadius: BorderRadius.all(Radius.circular(12)),
-    borderSide: BorderSide(color: Color(0xFFE2E8F0)),
-  );
 
   Future<void> _signup() async {
-    final name = _nameController.text.trim();
+    final region = _regionController.text.trim();
     final email = _emailController.text.trim();
+    final empName = _empNameController.text.trim();
     final password = _passwordController.text.trim();
+    final confirmPassword = _confirmPasswordController.text.trim();
 
-    if (name.isEmpty || email.isEmpty || password.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Please fill all fields')));
+    if (_selectedCompany == null || region.isEmpty || email.isEmpty || empName.isEmpty || password.isEmpty || confirmPassword.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('fillAllFields'.tr())));
+      return;
+    }
+
+    if (password != confirmPassword) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('passwordsMismatch'.tr())));
       return;
     }
 
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('user_name', name);
+    await prefs.setString('org_sector', _selectedSector);
+    await prefs.setString('org_id', _selectedCompany!.id);
+    await prefs.setString('org_name', context.locale.languageCode == 'ar' ? _selectedCompany!.nameAr : _selectedCompany!.nameEn);
+    await prefs.setString('org_region', region);
     await prefs.setString('user_email', email);
+    await prefs.setString('user_name', empName);
     await prefs.setString('user_password', password);
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Account created successfully! Please login.'),
+        SnackBar(
+          content: Text('orgCreated'.tr()),
         ),
       );
       Navigator.pushReplacement(
@@ -53,18 +67,26 @@ class _SignupScreenState extends State<SignupScreen> {
 
   @override
   void dispose() {
-    _nameController.dispose();
+    _regionController.dispose();
     _emailController.dispose();
+    _empNameController.dispose();
     _passwordController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final bool isWideScreen = MediaQuery.of(context).size.width >= 900;
+    final colors = AppColors.of(context);
+    
+    final inputBorder = OutlineInputBorder(
+      borderRadius: const BorderRadius.all(Radius.circular(12)),
+      borderSide: BorderSide(color: colors.inputBorder),
+    );
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFF),
+      backgroundColor: colors.scaffoldBackground,
       body: SafeArea(
         child: isWideScreen
             ? Row(
@@ -103,18 +125,18 @@ class _SignupScreenState extends State<SignupScreen> {
                             ),
                           ),
                           const SizedBox(height: 32),
-                          const Text(
-                            'Join NeuralWatt',
-                            style: TextStyle(
+                          Text(
+                            'joinNeuralWatt'.tr(),
+                            style: const TextStyle(
                               fontSize: 42,
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
                             ),
                           ),
                           const SizedBox(height: 12),
-                          const Text(
-                            'Supercharge your facility with intelligent energy telemetry.',
-                            style: TextStyle(
+                          Text(
+                            'superchargeFacility'.tr(),
+                            style: const TextStyle(
                               fontSize: 20,
                               color: Color(0xFF93C5FD),
                               fontWeight: FontWeight.w500,
@@ -123,20 +145,23 @@ class _SignupScreenState extends State<SignupScreen> {
                           const SizedBox(height: 48),
                           _buildHeroFeatureRow(
                             Icons.speed_rounded,
-                            'Instant Telemetry Ingestion',
-                            'Upload CSV or stream live energy metrics in seconds.',
+                            'instantTelemetry'.tr(),
+                            'uploadCsv'.tr(),
+                            colors,
                           ),
                           const SizedBox(height: 24),
                           _buildHeroFeatureRow(
                             Icons.auto_awesome,
-                            'Automated Gap Resolution',
-                            'AI fills missing historical consumption data seamlessly.',
+                            'automatedGap'.tr(),
+                            'aiFillsData'.tr(),
+                            colors,
                           ),
                           const SizedBox(height: 24),
                           _buildHeroFeatureRow(
                             Icons.query_stats,
-                            'Precision Analytics',
-                            'Gain operational insights for homes, office buildings & industrial plants.',
+                            'precisionAnalytics'.tr(),
+                            'gainInsights'.tr(),
+                            colors,
                           ),
                         ],
                       ),
@@ -153,7 +178,7 @@ class _SignupScreenState extends State<SignupScreen> {
                         child: ResponsiveCenter(
                           maxWidth: 460,
                           padding: EdgeInsets.zero,
-                          child: _buildSignupForm(isWide: true),
+                          child: _buildSignupForm(isWide: true, colors: colors, inputBorder: inputBorder),
                         ),
                       ),
                     ),
@@ -170,7 +195,7 @@ class _SignupScreenState extends State<SignupScreen> {
                   child: ResponsiveCenter(
                     maxWidth: 480,
                     padding: EdgeInsets.zero,
-                    child: _buildSignupForm(isWide: false),
+                    child: _buildSignupForm(isWide: false, colors: colors, inputBorder: inputBorder),
                   ),
                 ),
               ),
@@ -178,7 +203,7 @@ class _SignupScreenState extends State<SignupScreen> {
     );
   }
 
-  Widget _buildHeroFeatureRow(IconData icon, String title, String subtitle) {
+  Widget _buildHeroFeatureRow(IconData icon, String title, String subtitle, AppColors colors) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -215,20 +240,53 @@ class _SignupScreenState extends State<SignupScreen> {
     );
   }
 
-  Widget _buildSignupForm({required bool isWide}) {
+  Widget _buildSectorSegment(String sectorId, String title, IconData icon, AppColors colors) {
+    final isSelected = _selectedSector == sectorId;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () {
+          setState(() {
+            _selectedSector = sectorId;
+            _selectedCompany = null; // Reset company when sector changes
+          });
+        },
+        child: Container(
+          decoration: BoxDecoration(
+            color: isSelected ? colors.accentBlue.withValues(alpha: 0.1) : Colors.transparent,
+            borderRadius: BorderRadius.circular(11),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                icon,
+                size: 16,
+                color: isSelected ? colors.accentBlue : colors.textSecondary,
+              ),
+              const SizedBox(width: 6),
+              Text(
+                title,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                  color: isSelected ? colors.accentBlue : colors.textSecondary,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSignupForm({required bool isWide, required AppColors colors, required OutlineInputBorder inputBorder}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         if (!isWide) ...[
           Align(
             alignment: Alignment.topRight,
-            child: IconButton(
-              icon: const Icon(
-                Icons.dark_mode_outlined,
-                color: Color(0xFF64748B),
-              ),
-              onPressed: () {},
-            ),
+            child: const ThemeToggleButton(),
           ),
           const SizedBox(height: 10),
           // Logo
@@ -238,93 +296,134 @@ class _SignupScreenState extends State<SignupScreen> {
                 width: 70,
                 height: 70,
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: colors.cardBackground,
                   borderRadius: BorderRadius.circular(14),
-                  boxShadow: const [
+                  boxShadow: [
                     BoxShadow(
-                      color: Color(0x0D000000),
+                      color: colors.isDark ? Colors.black26 : const Color(0x0D000000),
                       blurRadius: 10,
-                      offset: Offset(0, 4),
+                      offset: const Offset(0, 4),
                     ),
                   ],
                 ),
-                child: const Center(
+                child: Center(
                   child: Icon(
                     Icons.bolt_rounded,
                     size: 35,
-                    color: Color(0xFF0D1B3E),
+                    color: colors.textPrimary,
                   ),
                 ),
               ),
             ),
           ),
           const SizedBox(height: 16),
-          const Text(
-            'NeuralWatt',
+          Text(
+            'appTitle'.tr(),
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF0D1B3E),
+              color: colors.textPrimary,
             ),
           ),
           const SizedBox(height: 12),
-          const Text(
-            'Create your account',
+          Text(
+            'createYourAccount'.tr(),
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 28,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF0D1B3E),
+              color: colors.textPrimary,
             ),
           ),
           const SizedBox(height: 8),
-          const Text(
-            'Join the future of smart consumption intelligence.',
+          Text(
+            'joinFuture'.tr(),
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 16, color: Color(0xFF64748B)),
+            style: TextStyle(fontSize: 16, color: colors.textSecondary),
           ),
           const SizedBox(height: 32),
         ] else ...[
-          const Text(
-            'Create Your Account',
+          Text(
+            'createYourAccountTitle'.tr(),
             style: TextStyle(
               fontSize: 32,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF0D1B3E),
+              color: colors.textPrimary,
             ),
           ),
           const SizedBox(height: 8),
-          const Text(
-            'Get started with NeuralWatt energy intelligence today.',
-            style: TextStyle(fontSize: 15, color: Color(0xFF64748B)),
+          Text(
+            'getStartedToday'.tr(),
+            style: TextStyle(fontSize: 15, color: colors.textSecondary),
           ),
           const SizedBox(height: 32),
         ],
 
-        // Full Name Field
-        const Text(
-          'Full Name',
+        Text(
+          'selectResource'.tr(), // Reusing this key or we could add a new one, but let's just use it
           style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w600,
-            color: Color(0xFF334155),
+            color: colors.textPrimary,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Container(
+          height: 48,
+          decoration: BoxDecoration(
+            color: colors.inputFill,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: colors.inputBorder),
+          ),
+          child: Row(
+            children: [
+              _buildSectorSegment('electricity', 'electricity'.tr(), Icons.bolt, colors),
+              _buildSectorSegment('water', 'water'.tr(), Icons.water_drop, colors),
+              _buildSectorSegment('gas', 'gas'.tr(), Icons.local_fire_department, colors),
+            ],
+          ),
+        ),
+        const SizedBox(height: 20),
+
+        // Organization Name Picker
+        UtilityCompanyPicker(
+          label: 'orgName'.tr(),
+          selectedCompany: _selectedCompany,
+          currentSector: _selectedSector,
+          onCompanySelected: (company) {
+            setState(() {
+              _selectedCompany = company;
+            });
+          },
+        ),
+        const SizedBox(height: 20),
+
+        // Managed Region/Sector Field
+        Text(
+          'managedRegion'.tr(),
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: colors.textPrimary,
           ),
         ),
         const SizedBox(height: 8),
         RepaintBoundary(
           child: TextField(
-            controller: _nameController,
-            decoration: const InputDecoration(
-              hintText: 'Jane Doe',
-              prefixIcon: Icon(Icons.person_outline, size: 20),
+            controller: _regionController,
+            style: TextStyle(color: colors.textPrimary),
+            decoration: InputDecoration(
+              hintText: 'regionHint'.tr(),
+              hintStyle: TextStyle(color: colors.textSecondary.withValues(alpha: 0.7)),
+              prefixIcon: Icon(Icons.map_outlined, size: 20, color: colors.iconColor),
               filled: true,
-              fillColor: Colors.white,
-              border: _inputBorder,
-              enabledBorder: _inputBorder,
+              fillColor: colors.inputFill,
+              border: inputBorder,
+              enabledBorder: inputBorder,
               focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.all(Radius.circular(12)),
-                borderSide: BorderSide(color: Color(0xFF2563EB), width: 2),
+                borderRadius: const BorderRadius.all(Radius.circular(12)),
+                borderSide: BorderSide(color: colors.accentBlue, width: 2),
               ),
             ),
           ),
@@ -332,28 +431,61 @@ class _SignupScreenState extends State<SignupScreen> {
         const SizedBox(height: 20),
 
         // Work Email Field
-        const Text(
-          'Work Email',
+        Text(
+          'orgEmail'.tr(),
           style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w600,
-            color: Color(0xFF334155),
+            color: colors.textPrimary,
           ),
         ),
         const SizedBox(height: 8),
         RepaintBoundary(
           child: TextField(
             controller: _emailController,
-            decoration: const InputDecoration(
-              hintText: 'jane.doe@company.com',
-              prefixIcon: Icon(Icons.email_outlined, size: 20),
+            style: TextStyle(color: colors.textPrimary),
+            decoration: InputDecoration(
+              hintText: 'emailHint'.tr(),
+              hintStyle: TextStyle(color: colors.textSecondary.withValues(alpha: 0.7)),
+              prefixIcon: Icon(Icons.email_outlined, size: 20, color: colors.iconColor),
               filled: true,
-              fillColor: Colors.white,
-              border: _inputBorder,
-              enabledBorder: _inputBorder,
+              fillColor: colors.inputFill,
+              border: inputBorder,
+              enabledBorder: inputBorder,
               focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.all(Radius.circular(12)),
-                borderSide: BorderSide(color: Color(0xFF2563EB), width: 2),
+                borderRadius: const BorderRadius.all(Radius.circular(12)),
+                borderSide: BorderSide(color: colors.accentBlue, width: 2),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 20),
+
+        // Employee Full Name Field
+        Text(
+          'empName'.tr(),
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: colors.textPrimary,
+          ),
+        ),
+        const SizedBox(height: 8),
+        RepaintBoundary(
+          child: TextField(
+            controller: _empNameController,
+            style: TextStyle(color: colors.textPrimary),
+            decoration: InputDecoration(
+              hintText: 'nameHint'.tr(),
+              hintStyle: TextStyle(color: colors.textSecondary.withValues(alpha: 0.7)),
+              prefixIcon: Icon(Icons.person_outline, size: 20, color: colors.iconColor),
+              filled: true,
+              fillColor: colors.inputFill,
+              border: inputBorder,
+              enabledBorder: inputBorder,
+              focusedBorder: OutlineInputBorder(
+                borderRadius: const BorderRadius.all(Radius.circular(12)),
+                borderSide: BorderSide(color: colors.accentBlue, width: 2),
               ),
             ),
           ),
@@ -361,12 +493,12 @@ class _SignupScreenState extends State<SignupScreen> {
         const SizedBox(height: 20),
 
         // Password Field
-        const Text(
-          'Password',
+        Text(
+          'password'.tr(),
           style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w600,
-            color: Color(0xFF334155),
+            color: colors.textPrimary,
           ),
         ),
         const SizedBox(height: 8),
@@ -374,16 +506,18 @@ class _SignupScreenState extends State<SignupScreen> {
           child: TextField(
             controller: _passwordController,
             obscureText: !_isPasswordVisible,
+            style: TextStyle(color: colors.textPrimary),
             decoration: InputDecoration(
               hintText: '••••••••',
-              prefixIcon: const Icon(Icons.lock_outline, size: 20),
+              hintStyle: TextStyle(color: colors.textSecondary.withValues(alpha: 0.7)),
+              prefixIcon: Icon(Icons.lock_outline, size: 20, color: colors.iconColor),
               filled: true,
-              fillColor: Colors.white,
-              border: _inputBorder,
-              enabledBorder: _inputBorder,
-              focusedBorder: const OutlineInputBorder(
-                borderRadius: BorderRadius.all(Radius.circular(12)),
-                borderSide: BorderSide(color: Color(0xFF2563EB), width: 2),
+              fillColor: colors.inputFill,
+              border: inputBorder,
+              enabledBorder: inputBorder,
+              focusedBorder: OutlineInputBorder(
+                borderRadius: const BorderRadius.all(Radius.circular(12)),
+                borderSide: BorderSide(color: colors.accentBlue, width: 2),
               ),
               suffixIcon: IconButton(
                 icon: Icon(
@@ -391,10 +525,57 @@ class _SignupScreenState extends State<SignupScreen> {
                       ? Icons.visibility_off_outlined
                       : Icons.visibility_outlined,
                   size: 20,
+                  color: colors.iconColor,
                 ),
                 onPressed: () {
                   setState(() {
                     _isPasswordVisible = !_isPasswordVisible;
+                  });
+                },
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 20),
+
+        // Confirm Password Field
+        Text(
+          'confirmPassword'.tr(),
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: colors.textPrimary,
+          ),
+        ),
+        const SizedBox(height: 8),
+        RepaintBoundary(
+          child: TextField(
+            controller: _confirmPasswordController,
+            obscureText: !_isConfirmPasswordVisible,
+            style: TextStyle(color: colors.textPrimary),
+            decoration: InputDecoration(
+              hintText: '••••••••',
+              hintStyle: TextStyle(color: colors.textSecondary.withValues(alpha: 0.7)),
+              prefixIcon: Icon(Icons.lock_outline, size: 20, color: colors.iconColor),
+              filled: true,
+              fillColor: colors.inputFill,
+              border: inputBorder,
+              enabledBorder: inputBorder,
+              focusedBorder: OutlineInputBorder(
+                borderRadius: const BorderRadius.all(Radius.circular(12)),
+                borderSide: BorderSide(color: colors.accentBlue, width: 2),
+              ),
+              suffixIcon: IconButton(
+                icon: Icon(
+                  _isConfirmPasswordVisible
+                      ? Icons.visibility_off_outlined
+                      : Icons.visibility_outlined,
+                  size: 20,
+                  color: colors.iconColor,
+                ),
+                onPressed: () {
+                  setState(() {
+                    _isConfirmPasswordVisible = !_isConfirmPasswordVisible;
                   });
                 },
               ),
@@ -407,39 +588,39 @@ class _SignupScreenState extends State<SignupScreen> {
         ElevatedButton(
           onPressed: _signup,
           style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.black,
+            backgroundColor: colors.isDark ? colors.accentBlue : Colors.black,
             foregroundColor: Colors.white,
             minimumSize: const Size.fromHeight(56),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
             ),
           ),
-          child: const Row(
+          child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
-                'Sign Up',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                'signUpBtn'.tr(),
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
-              SizedBox(width: 8),
-              Icon(Icons.arrow_forward, size: 20),
+              const SizedBox(width: 8),
+              const Icon(Icons.arrow_forward, size: 20),
             ],
           ),
         ),
         const SizedBox(height: 32),
 
         // Divider
-        const Row(
+        Row(
           children: [
-            Expanded(child: Divider(color: Color(0xFFE2E8F0))),
+            Expanded(child: Divider(color: colors.cardBorder)),
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16.0),
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: Text(
-                'Or sign up with',
-                style: TextStyle(color: Color(0xFF94A3B8), fontSize: 14),
+                'orSignUpWith'.tr(),
+                style: TextStyle(color: colors.textSecondary, fontSize: 14),
               ),
             ),
-            Expanded(child: Divider(color: Color(0xFFE2E8F0))),
+            Expanded(child: Divider(color: colors.cardBorder)),
           ],
         ),
         const SizedBox(height: 24),
@@ -448,35 +629,35 @@ class _SignupScreenState extends State<SignupScreen> {
         ElevatedButton.icon(
           onPressed: () {},
           icon: const Icon(Icons.g_mobiledata, size: 28, color: Colors.red),
-          label: const Text(
-            'Google',
-            style: TextStyle(color: Color(0xFF334155)),
+          label: Text(
+            'google'.tr(),
+            style: TextStyle(color: colors.textPrimary),
           ),
           style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFFEEF2FF),
+            backgroundColor: colors.isDark ? colors.cardBackground : const Color(0xFFEEF2FF),
             elevation: 0,
             minimumSize: const Size.fromHeight(56),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
-              side: const BorderSide(color: Color(0xFFE2E8F0)),
+              side: BorderSide(color: colors.cardBorder),
             ),
           ),
         ),
         const SizedBox(height: 12),
         ElevatedButton.icon(
           onPressed: () {},
-          icon: const Icon(Icons.business, size: 20, color: Color(0xFF2563EB)),
-          label: const Text(
-            'Enterprise SSO',
-            style: TextStyle(color: Color(0xFF334155)),
+          icon: Icon(Icons.business, size: 20, color: colors.accentBlue),
+          label: Text(
+            'enterpriseSSO'.tr(),
+            style: TextStyle(color: colors.textPrimary),
           ),
           style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFFEEF2FF),
+            backgroundColor: colors.isDark ? colors.cardBackground : const Color(0xFFEEF2FF),
             elevation: 0,
             minimumSize: const Size.fromHeight(56),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
-              side: const BorderSide(color: Color(0xFFE2E8F0)),
+              side: BorderSide(color: colors.cardBorder),
             ),
           ),
         ),
@@ -486,9 +667,9 @@ class _SignupScreenState extends State<SignupScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text(
-              "Already have an account?",
-              style: TextStyle(color: Color(0xFF64748B)),
+            Text(
+              "alreadyHaveAccount".tr(),
+              style: TextStyle(color: colors.textSecondary),
             ),
             TextButton(
               onPressed: () {
@@ -497,11 +678,11 @@ class _SignupScreenState extends State<SignupScreen> {
                   MaterialPageRoute(builder: (context) => const LoginScreen()),
                 );
               },
-              child: const Text(
-                'Log in',
+              child: Text(
+                'logIn'.tr(),
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF2563EB),
+                  color: colors.accentText,
                 ),
               ),
             ),

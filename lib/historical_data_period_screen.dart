@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'upload_consumption_screen.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'models/setup_config.dart';
 import 'utils/responsive.dart';
 import 'utils/theme.dart';
@@ -33,7 +34,7 @@ class _HistoricalDataPeriodScreenState
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'NeuralWatt',
+          'appTitle'.tr(),
           style: TextStyle(
             color: colors.textPrimary,
             fontWeight: FontWeight.bold,
@@ -53,7 +54,7 @@ class _HistoricalDataPeriodScreenState
               children: [
                 const SizedBox(height: 20),
                 Text(
-                  'STEP 5 OF 6',
+                  'stepNof6'.tr(args: ['5']).toUpperCase(),
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
@@ -75,7 +76,7 @@ class _HistoricalDataPeriodScreenState
                 ),
                 const SizedBox(height: 32),
                 Text(
-                  'Historical Data Period',
+                  'historicalDataPeriod'.tr(),
                   style: TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
@@ -84,7 +85,7 @@ class _HistoricalDataPeriodScreenState
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  'Select the time horizon for the AI quality analysis. Longer periods provide more accurate predictive baselines but require more processing time.',
+                  'historicalDataDesc'.tr(),
                   style: TextStyle(
                     fontSize: 16,
                     color: colors.textSecondary,
@@ -106,7 +107,7 @@ class _HistoricalDataPeriodScreenState
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          'DURATION (MONTHS)',
+                          'durationMonths'.tr(),
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.bold,
@@ -125,7 +126,7 @@ class _HistoricalDataPeriodScreenState
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
-                        'Min 5 / Max 12',
+                        'minMaxMonths'.tr(),
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
@@ -189,7 +190,7 @@ class _HistoricalDataPeriodScreenState
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'AI Recommendation',
+                              'aiRecommendation'.tr(),
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
@@ -198,7 +199,7 @@ class _HistoricalDataPeriodScreenState
                             ),
                             const SizedBox(height: 8),
                             Text(
-                              'Based on your facility type, a 6-month period is optimal to capture seasonal variations without introducing excessive legacy noise into the analysis.',
+                              'aiRecDesc'.tr(),
                               style: TextStyle(
                                 fontSize: 14,
                                 color: colors.textSecondary,
@@ -235,18 +236,22 @@ class _HistoricalDataPeriodScreenState
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  child: const Row(
+                  child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text(
-                        'Analyze Quality',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
+                      Flexible(
+                        child: Text(
+                          'analyzeQuality'.tr(),
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      SizedBox(width: 8),
-                      Icon(Icons.arrow_forward, size: 20),
+                      const SizedBox(width: 8),
+                      const Icon(Icons.arrow_forward, size: 20),
                     ],
                   ),
                 ),
@@ -306,7 +311,7 @@ class _HistoricalDataPeriodScreenState
                   ),
                 ),
                 Text(
-                  'Months',
+                  'monthsText'.tr(),
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,

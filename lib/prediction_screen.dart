@@ -2,8 +2,11 @@ import 'dart:ui';
 import 'home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'utils/responsive.dart';
 import 'utils/theme.dart';
+import 'utils/units_localization.dart';
+import 'utils/advice_translator.dart';
 import 'utils/theme_toggle_button.dart';
 
 class PredictionScreen extends StatefulWidget {
@@ -18,6 +21,14 @@ class PredictionScreen extends StatefulWidget {
   static Map<String, dynamic>? lastPredictionData;
   static String? lastFacilityName;
   static String? lastEnvironmentType;
+
+  static void clearCache() {
+    lastDurationMonths = null;
+    lastResourceType = null;
+    lastPredictionData = null;
+    lastFacilityName = null;
+    lastEnvironmentType = null;
+  }
 
   PredictionScreen({
     super.key,
@@ -231,10 +242,7 @@ class _PredictionScreenState extends State<PredictionScreen> {
   }
 
   String _getUnit() {
-    if (widget.resourceType.toLowerCase() == 'electricity') {
-      return 'kWh';
-    }
-    return 'm³';
+    return UnitsLocalization.getLocalizedUnit(context, widget.resourceType);
   }
 
   IconData _getResourceIcon() {
@@ -281,7 +289,7 @@ class _PredictionScreenState extends State<PredictionScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'NeuralWatt',
+          'appTitle'.tr(),
           style: TextStyle(
             color: colors.textPrimary,
             fontWeight: FontWeight.bold,
@@ -526,7 +534,7 @@ class _PredictionScreenState extends State<PredictionScreen> {
               borderRadius: BorderRadius.circular(20),
             ),
             child: Text(
-              _tabs[index],
+              _getTabTranslation(_tabs[index]),
               style: TextStyle(
                 color: isSelected ? Colors.white : colors.textSecondary,
                 fontWeight: FontWeight.bold,
@@ -540,6 +548,21 @@ class _PredictionScreenState extends State<PredictionScreen> {
     );
   }
 
+  String _getTabTranslation(String tab) {
+    switch (tab) {
+      case 'NEXT DAY':
+        return 'nextDay'.tr();
+      case 'NEXT WEEK':
+        return 'nextWeek'.tr();
+      case 'NEXT MONTH':
+        return 'nextMonth'.tr();
+      case 'NEXT QUARTER':
+        return 'nextQuarter'.tr();
+      default:
+        return tab;
+    }
+  }
+
   Widget _buildPredictedConsumptionCard(
     AppColors colors,
     Color bg,
@@ -548,9 +571,10 @@ class _PredictionScreenState extends State<PredictionScreen> {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: bg,
+        color: colors.cardGradient == null ? colors.cardBackground : null,
+        gradient: colors.cardGradient,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: border),
+        border: Border.all(color: colors.cardBorder),
       ),
       child: Stack(
         clipBehavior: Clip.none,
@@ -567,7 +591,7 @@ class _PredictionScreenState extends State<PredictionScreen> {
                   ),
                   const SizedBox(width: 6),
                   Text(
-                    'PREDICTED CONSUMPTION',
+                    'predictedConsumption'.tr(),
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
@@ -624,9 +648,10 @@ class _PredictionScreenState extends State<PredictionScreen> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: bg,
+        color: colors.cardGradient == null ? colors.cardBackground : null,
+        gradient: colors.cardGradient,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: border),
+        border: Border.all(color: colors.cardBorder),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -640,7 +665,7 @@ class _PredictionScreenState extends State<PredictionScreen> {
               ),
               const SizedBox(width: 6),
               Text(
-                'EST. WASTE',
+                'estWaste'.tr(),
                 style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.bold,
@@ -688,9 +713,10 @@ class _PredictionScreenState extends State<PredictionScreen> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: bg,
+        color: colors.cardGradient == null ? colors.cardBackground : null,
+        gradient: colors.cardGradient,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: border),
+        border: Border.all(color: colors.cardBorder),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -700,7 +726,7 @@ class _PredictionScreenState extends State<PredictionScreen> {
               Icon(Icons.pie_chart_outline, size: 16, color: Colors.redAccent),
               const SizedBox(width: 6),
               Text(
-                'WASTE RATIO',
+                'wasteRatio'.tr(),
                 style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.bold,
@@ -793,9 +819,10 @@ class _PredictionScreenState extends State<PredictionScreen> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: bg,
+        color: colors.cardGradient == null ? colors.cardBackground : null,
+        gradient: colors.cardGradient,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: border),
+        border: Border.all(color: colors.cardBorder),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -805,7 +832,7 @@ class _PredictionScreenState extends State<PredictionScreen> {
               const Icon(Icons.attach_money, size: 16, color: Colors.green),
               const SizedBox(width: 6),
               Text(
-                'WASTE COST',
+                'wasteCost'.tr(),
                 style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.bold,
@@ -840,7 +867,7 @@ class _PredictionScreenState extends State<PredictionScreen> {
                 ),
                 const SizedBox(width: 4),
                 Text(
-                  'LE',
+                  'le'.tr(),
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
@@ -905,17 +932,23 @@ class _PredictionScreenState extends State<PredictionScreen> {
   ) {
     final isWide = MediaQuery.of(context).size.width >= 800;
     return Container(
-      padding: const EdgeInsets.only(top: 24, left: 24, right: 24, bottom: 16),
+      padding: const EdgeInsetsDirectional.only(
+        top: 24,
+        start: 24,
+        end: 24,
+        bottom: 16,
+      ),
       decoration: BoxDecoration(
-        color: bg,
+        color: colors.cardGradient == null ? colors.cardBackground : null,
+        gradient: colors.cardGradient,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: border),
+        border: Border.all(color: colors.cardBorder),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'CONSUMPTION FORECAST',
+            'consumptionForecast'.tr(),
             style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.bold,
@@ -927,11 +960,15 @@ class _PredictionScreenState extends State<PredictionScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              _buildLegendItem('Actual', colors.textSecondary, isDashed: false),
+              _buildLegendItem(
+                'actual'.tr(),
+                colors.textSecondary,
+                isDashed: false,
+              ),
               const SizedBox(width: 16),
               _buildLegendItem(
-                'Predicted',
-                const Color(0xFF4F8AFC),
+                'predicted'.tr(),
+                colors.accentBlue,
                 isDashed: true,
               ),
             ],
@@ -942,7 +979,7 @@ class _PredictionScreenState extends State<PredictionScreen> {
             child: CustomPaint(
               painter: ForecastChartPainter(
                 lineColor: colors.textSecondary.withValues(alpha: 0.5),
-                predictColor: const Color(0xFF4F8AFC),
+                predictColor: colors.accentBlue,
                 gridColor: colors.isDark
                     ? Colors.white.withValues(alpha: 0.05)
                     : Colors.black.withValues(alpha: 0.05),
@@ -1027,14 +1064,10 @@ class _PredictionScreenState extends State<PredictionScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 4.0),
           child: Row(
             children: [
-              const Icon(
-                Icons.auto_awesome,
-                size: 18,
-                color: Color(0xFF4F8AFC),
-              ),
+              Icon(Icons.auto_awesome, size: 18, color: colors.accentBlue),
               const SizedBox(width: 8),
               Text(
-                'AI EFFICIENCY ADVISOR',
+                'aiInsights'.tr(),
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
@@ -1048,8 +1081,11 @@ class _PredictionScreenState extends State<PredictionScreen> {
         const SizedBox(height: 16),
         ...messages.map((msg) {
           final type = msg['type'] as String?;
-          final title = msg['title'] as String? ?? 'Advice';
-          final text = msg['message'] as String? ?? '';
+          final rawTitle = msg['title'] as String? ?? 'Advice';
+          final rawText = msg['message'] as String? ?? '';
+
+          final title = AdviceTranslator.translateTitle(context, rawTitle);
+          final text = AdviceTranslator.translateMessage(context, rawText);
 
           IconData iconData;
           Color iconColor;
@@ -1057,24 +1093,24 @@ class _PredictionScreenState extends State<PredictionScreen> {
           switch (type) {
             case 'waste_reduction':
               iconData = Icons.delete_sweep_rounded;
-              iconColor = Colors.orangeAccent;
+              iconColor = colors.warning;
               break;
             case 'category_reduction':
               iconData = Icons.trending_down_rounded;
-              iconColor = Colors.greenAccent;
+              iconColor = colors.success;
               break;
             case 'category_maintenance':
               iconData = Icons.verified_rounded;
-              iconColor = Colors.greenAccent;
+              iconColor = colors.success;
               break;
             case 'equipment_check':
               iconData = Icons.build_circle_rounded;
-              iconColor = Colors.redAccent;
+              iconColor = colors.danger;
               break;
             case 'general_advice':
             default:
               iconData = Icons.lightbulb_rounded;
-              iconColor = const Color(0xFFFBBF24);
+              iconColor = colors.info;
               break;
           }
 
@@ -1171,23 +1207,19 @@ class _PredictionScreenState extends State<PredictionScreen> {
               items: [
                 BottomNavigationBarItem(
                   icon: _buildNavIcon(Icons.home_filled, 0, colors),
-                  label: 'HOME',
+                  label: 'navHome'.tr(),
                 ),
                 BottomNavigationBarItem(
                   icon: _buildNavIcon(Icons.analytics_outlined, 1, colors),
-                  label: 'ANALYTICS',
+                  label: 'navAnalytics'.tr(),
                 ),
                 BottomNavigationBarItem(
                   icon: _buildNavIcon(Icons.auto_awesome_outlined, 2, colors),
-                  label: 'PREDICT',
+                  label: 'navPredict'.tr(),
                 ),
                 BottomNavigationBarItem(
-                  icon: _buildNavIcon(Icons.delete_outline, 3, colors),
-                  label: 'WASTE',
-                ),
-                BottomNavigationBarItem(
-                  icon: _buildNavIcon(Icons.person_outline, 4, colors),
-                  label: 'PROFILE',
+                  icon: _buildNavIcon(Icons.person_outline, 3, colors),
+                  label: 'navProfile'.tr(),
                 ),
               ],
             ),

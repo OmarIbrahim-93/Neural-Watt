@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'signup_screen.dart';
 import 'home_screen.dart';
 import 'utils/theme.dart';
@@ -24,7 +25,7 @@ class _LoginScreenState extends State<LoginScreen> {
     if (email.isEmpty || password.isEmpty) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('Please fill all fields')));
+      ).showSnackBar(SnackBar(content: Text('fillAllFields'.tr())));
       return;
     }
 
@@ -33,9 +34,12 @@ class _LoginScreenState extends State<LoginScreen> {
     final storedPassword = prefs.getString('user_password');
 
     final bool isFirstTime = (storedEmail == null || storedEmail.isEmpty);
-    final bool isMatching = (email == storedEmail && password == storedPassword);
+    final bool isMatching =
+        (email == storedEmail && password == storedPassword);
 
     if (isFirstTime || isMatching) {
+      await prefs.setBool('is_logged_in', true);
+
       if (mounted) {
         Navigator.pushReplacement(
           context,
@@ -44,9 +48,9 @@ class _LoginScreenState extends State<LoginScreen> {
       }
     } else {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Invalid email or password')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('invalidEmailPass'.tr())));
       }
     }
   }
@@ -72,10 +76,7 @@ class _LoginScreenState extends State<LoginScreen> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        actions: const [
-          ThemeToggleButton(),
-          SizedBox(width: 8),
-        ],
+        actions: const [ThemeToggleButton(), SizedBox(width: 8)],
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -97,7 +98,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       border: Border.all(color: colors.cardBorder),
                       boxShadow: [
                         BoxShadow(
-                          color: colors.isDark ? Colors.black26 : const Color(0x0D000000),
+                          color: colors.isDark
+                              ? Colors.black26
+                              : const Color(0x0D000000),
                           blurRadius: 10,
                           offset: const Offset(0, 4),
                         ),
@@ -115,7 +118,7 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const SizedBox(height: 24),
               Text(
-                'NeuralWatt',
+                'appTitle'.tr(),
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 32,
@@ -125,15 +128,15 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const SizedBox(height: 8),
               Text(
-                'Smart Consumption Intelligence',
+                'smartConsumption'.tr(),
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 16, color: colors.textSecondary),
               ),
               const SizedBox(height: 48),
 
-              // Work Email Field
+              // Organization Email Field
               Text(
-                'Work Email',
+                'orgEmail'.tr(),
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
@@ -146,9 +149,15 @@ class _LoginScreenState extends State<LoginScreen> {
                   controller: _emailController,
                   style: TextStyle(color: colors.textPrimary),
                   decoration: InputDecoration(
-                    hintText: 'manager@company.com',
-                    hintStyle: TextStyle(color: colors.textSecondary.withValues(alpha: 0.7)),
-                    prefixIcon: Icon(Icons.email_outlined, size: 20, color: colors.iconColor),
+                    hintText: 'emailHint'.tr(),
+                    hintStyle: TextStyle(
+                      color: colors.textSecondary.withValues(alpha: 0.7),
+                    ),
+                    prefixIcon: Icon(
+                      Icons.email_outlined,
+                      size: 20,
+                      color: colors.iconColor,
+                    ),
                     filled: true,
                     fillColor: colors.inputFill,
                     border: inputBorder,
@@ -170,7 +179,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Password',
+                    'password'.tr(),
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
@@ -180,7 +189,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   TextButton(
                     onPressed: () {},
                     child: Text(
-                      'Forgot?',
+                      'forgot'.tr(),
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
@@ -196,9 +205,15 @@ class _LoginScreenState extends State<LoginScreen> {
                   obscureText: !_isPasswordVisible,
                   style: TextStyle(color: colors.textPrimary),
                   decoration: InputDecoration(
-                    hintText: '••••••••',
-                    hintStyle: TextStyle(color: colors.textSecondary.withValues(alpha: 0.7)),
-                    prefixIcon: Icon(Icons.lock_outline, size: 20, color: colors.iconColor),
+                    hintText: 'passwordHint'.tr(),
+                    hintStyle: TextStyle(
+                      color: colors.textSecondary.withValues(alpha: 0.7),
+                    ),
+                    prefixIcon: Icon(
+                      Icons.lock_outline,
+                      size: 20,
+                      color: colors.iconColor,
+                    ),
                     filled: true,
                     fillColor: colors.inputFill,
                     border: inputBorder,
@@ -233,25 +248,27 @@ class _LoginScreenState extends State<LoginScreen> {
               ElevatedButton(
                 onPressed: _login,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: colors.isDark ? colors.accentBlue : Colors.black,
+                  backgroundColor: colors.isDark
+                      ? colors.accentBlue
+                      : Colors.black,
                   foregroundColor: Colors.white,
                   minimumSize: const Size.fromHeight(56),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                child: const Row(
+                child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      'Get Started',
-                      style: TextStyle(
+                      'getStarted'.tr(),
+                      style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    SizedBox(width: 8),
-                    Icon(Icons.arrow_forward, size: 20),
+                    const SizedBox(width: 8),
+                    const Icon(Icons.arrow_forward, size: 20),
                   ],
                 ),
               ),
@@ -264,8 +281,11 @@ class _LoginScreenState extends State<LoginScreen> {
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16.0),
                     child: Text(
-                      'Or continue with',
-                      style: TextStyle(color: colors.textSecondary, fontSize: 14),
+                      'orContinueWith'.tr(),
+                      style: TextStyle(
+                        color: colors.textSecondary,
+                        fontSize: 14,
+                      ),
                     ),
                   ),
                   Expanded(child: Divider(color: colors.cardBorder)),
@@ -284,7 +304,10 @@ class _LoginScreenState extends State<LoginScreen> {
                         size: 28,
                         color: Colors.red,
                       ),
-                      label: Text('Google', style: TextStyle(color: colors.textPrimary)),
+                      label: Text(
+                        'google'.tr(),
+                        style: TextStyle(color: colors.textPrimary),
+                      ),
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         side: BorderSide(color: colors.cardBorder),
@@ -298,8 +321,15 @@ class _LoginScreenState extends State<LoginScreen> {
                   Expanded(
                     child: OutlinedButton.icon(
                       onPressed: () {},
-                      icon: Icon(Icons.business, size: 20, color: colors.accentBlue),
-                      label: Text('SSO', style: TextStyle(color: colors.textPrimary)),
+                      icon: Icon(
+                        Icons.business,
+                        size: 20,
+                        color: colors.accentBlue,
+                      ),
+                      label: Text(
+                        'enterpriseSSO'.tr(),
+                        style: TextStyle(color: colors.textPrimary),
+                      ),
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         side: BorderSide(color: colors.cardBorder),
@@ -318,7 +348,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    "Don't have an account?",
+                    "dontHaveAccount".tr(),
                     style: TextStyle(color: colors.textSecondary),
                   ),
                   TextButton(
@@ -331,7 +361,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       );
                     },
                     child: Text(
-                      'Request access',
+                      'signUp'.tr(),
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         color: colors.accentText,

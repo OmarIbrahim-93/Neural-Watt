@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'historical_data_period_screen.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'models/setup_config.dart';
 import 'utils/responsive.dart';
 import 'utils/theme.dart';
@@ -15,8 +16,8 @@ class HolidayScheduleScreen extends StatefulWidget {
 }
 
 class _HolidayScheduleScreenState extends State<HolidayScheduleScreen> {
-  final List<String> _days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-  final Set<String> _selectedDays = {'Sat', 'Sun'};
+  final List<String> _days = ['mon'.tr(), 'tue'.tr(), 'wed'.tr(), 'thu'.tr(), 'fri'.tr(), 'sat'.tr(), 'sun'.tr()];
+  final Set<String> _selectedDays = {'sat'.tr(), 'sun'.tr()};
   bool _useElectricityDuringHolidays = true;
 
   @override
@@ -33,7 +34,7 @@ class _HolidayScheduleScreenState extends State<HolidayScheduleScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'NeuralWatt',
+          'appTitle'.tr(),
           style: TextStyle(
             color: colors.textPrimary,
             fontWeight: FontWeight.bold,
@@ -61,7 +62,7 @@ class _HolidayScheduleScreenState extends State<HolidayScheduleScreen> {
                       children: [
                         const SizedBox(height: 20),
                         Text(
-                          'Step 4 of 6',
+                          'stepNof6'.tr(args: ['4']),
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
@@ -80,7 +81,7 @@ class _HolidayScheduleScreenState extends State<HolidayScheduleScreen> {
                         ),
                         const SizedBox(height: 32),
                         Text(
-                          'Holiday Schedule',
+                          'holidaySchedule'.tr(),
                           style: TextStyle(
                             fontSize: 28,
                             fontWeight: FontWeight.bold,
@@ -89,7 +90,7 @@ class _HolidayScheduleScreenState extends State<HolidayScheduleScreen> {
                         ),
                         const SizedBox(height: 12),
                         Text(
-                          'Configure your typical holiday and resource usage patterns for accurate predictions.',
+                          'holidayScheduleDesc'.tr(),
                           style: TextStyle(
                             fontSize: 16,
                             color: colors.textSecondary,
@@ -98,7 +99,7 @@ class _HolidayScheduleScreenState extends State<HolidayScheduleScreen> {
                         ),
                         const SizedBox(height: 40),
                         Text(
-                          'Select Holiday Days',
+                          'selectHolidayDays'.tr(),
                           style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
@@ -107,7 +108,7 @@ class _HolidayScheduleScreenState extends State<HolidayScheduleScreen> {
                         ),
                         const SizedBox(height: 12),
                         Text(
-                          'Which days of the week are typically considered holidays or non-working days for this facility?',
+                          'holidayDaysDesc'.tr(),
                           style: TextStyle(
                             fontSize: 14,
                             color: colors.textSecondary,
@@ -149,8 +150,8 @@ class _HolidayScheduleScreenState extends State<HolidayScheduleScreen> {
                               borderRadius: BorderRadius.circular(12),
                             ),
                           ),
-                          child: const Text(
-                            'Continue',
+                          child: Text(
+                            'continueBtn'.tr(),
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
@@ -225,7 +226,7 @@ class _HolidayScheduleScreenState extends State<HolidayScheduleScreen> {
                 Icon(Icons.bolt, color: colors.accentBlue, size: 24),
                 const SizedBox(width: 12),
                 Text(
-                  'Resource Usage',
+                  'resourceUsage'.tr(),
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
@@ -236,7 +237,7 @@ class _HolidayScheduleScreenState extends State<HolidayScheduleScreen> {
             ),
             const SizedBox(height: 16),
             Text(
-              'Do you use this resource during holidays?',
+              'useResourceDuringHolidays'.tr(),
               style: TextStyle(
                 fontSize: 16,
                 color: colors.textSecondary,
@@ -260,7 +261,7 @@ class _HolidayScheduleScreenState extends State<HolidayScheduleScreen> {
             ),
             const SizedBox(height: 8),
             Text(
-              _useElectricityDuringHolidays ? 'Yes' : 'No',
+              _useElectricityDuringHolidays ? 'yes'.tr() : 'no'.tr(),
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,

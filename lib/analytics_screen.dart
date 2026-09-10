@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'prediction_screen.dart';
 import 'dart:ui';
+import 'package:easy_localization/easy_localization.dart';
+import 'utils/responsive.dart';
 import 'utils/theme.dart';
+import 'utils/units_localization.dart';
 import 'package:intl/intl.dart';
 
 class AnalyticsScreen extends StatefulWidget {
@@ -12,7 +15,6 @@ class AnalyticsScreen extends StatefulWidget {
 }
 
 class _AnalyticsScreenState extends State<AnalyticsScreen> {
-  late String _targetName;
   late String _resourceType;
   int _selectedPeriodMonths = 12; // Default to 12
 
@@ -23,13 +25,6 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
   void initState() {
     super.initState();
 
-    final facilityName = PredictionScreen.lastFacilityName ?? 'ABC Factory';
-    final envTypeStr = PredictionScreen.lastEnvironmentType ?? 'factory';
-    final envTypeCapitalized = envTypeStr.isNotEmpty
-        ? '${envTypeStr[0].toUpperCase()}${envTypeStr.substring(1)}'
-        : 'Factory';
-
-    _targetName = '$facilityName $envTypeCapitalized';
     _resourceType = PredictionScreen.lastResourceType ?? 'Electricity';
     _resourceType = _resourceType.isNotEmpty
         ? '${_resourceType[0].toUpperCase()}${_resourceType.substring(1)}'
@@ -41,6 +36,25 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       _analyticsData = Map<String, dynamic>.from(predictionData['analytics']);
     } else {
       _analyticsData = null;
+    }
+  }
+
+  String _buildTargetName(BuildContext context) {
+    final facilityName = PredictionScreen.lastFacilityName ?? 'ABC Factory';
+    final envTypeStr = PredictionScreen.lastEnvironmentType ?? 'factory';
+
+    // Use the translation key (e.g. 'house'.tr() → 'منزل' in Arabic, 'House' in English)
+    final envTypeLabel = envTypeStr.isNotEmpty
+        ? envTypeStr.tr()
+        : 'Factory'.tr();
+
+    final isAr = context.locale.languageCode == 'ar';
+    if (isAr) {
+      // Arabic: type before name → "منزل اسم المنزل"
+      return '$envTypeLabel $facilityName';
+    } else {
+      // English: name before type → "My Home House"
+      return '$facilityName $envTypeLabel';
     }
   }
 
@@ -71,7 +85,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
         ? Map<String, dynamic>.from(periodData['monthly_consumption'])
         : <String, dynamic>{};
 
-    final unit = _resourceType.toLowerCase() == 'electricity' ? 'kWh' : 'm³';
+    final unit = UnitsLocalization.getLocalizedUnit(context, _resourceType);
 
     IconData resourceIcon = Icons.bolt;
     Color resourceColor = colors.accentBlue;
@@ -83,7 +97,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       resourceColor = Colors.orange;
     }
 
-    final NumberFormat formatter = NumberFormat('#,##0.00');
+    final NumberFormat formatter = NumberFormat('#,##0.00', 'en_US');
 
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
@@ -92,7 +106,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
         children: [
           const SizedBox(height: 16),
           Text(
-            'Analytics History',
+            'analyticsHistory'.tr(),
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
@@ -101,7 +115,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Historical view of consumption patterns.',
+            'analyticsHistoryDesc'.tr(),
             style: TextStyle(fontSize: 14, color: colors.textSecondary),
           ),
           const SizedBox(height: 24),
@@ -109,10 +123,20 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
           // Target and Resource cards
           Row(
             children: [
-              Expanded(child: _buildTextCard('Target', _targetName, colors)),
+              Expanded(
+                child: _buildTextCard(
+                  'target'.tr(),
+                  _buildTargetName(context),
+                  colors,
+                ),
+              ),
               const SizedBox(width: 12),
               Expanded(
-                child: _buildTextCard('Resource', _resourceType, colors),
+                child: _buildTextCard(
+                  'resource'.tr(),
+                  _resourceType.toLowerCase().tr(),
+                  colors,
+                ),
               ),
             ],
           ),
@@ -120,9 +144,11 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
 
           // Period Dropdown
           _buildDropdown(
-            'Period: ',
-            'Last $_selectedPeriodMonths Months',
-            _availablePeriods.map((m) => 'Last $m Months').toList(),
+            'period'.tr(),
+            'lastNMonths'.tr(args: [_selectedPeriodMonths.toString()]),
+            _availablePeriods
+                .map((m) => 'lastNMonths'.tr(args: [m.toString()]))
+                .toList(),
             (val) {
               if (val != null) {
                 final numberString = val.replaceAll(RegExp(r'[^0-9]'), '');
@@ -141,7 +167,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
               child: Padding(
                 padding: const EdgeInsets.all(32.0),
                 child: Text(
-                  'No analytics data available.\nPlease run a prediction first.',
+                  'noAnalyticsData'.tr(),
                   textAlign: TextAlign.center,
                   style: TextStyle(color: colors.textSecondary),
                 ),
@@ -153,7 +179,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
               colors: colors,
               icon: resourceIcon,
               iconColor: resourceColor,
-              title: 'TOTAL CONSUMPTION',
+              title: 'totalConsumption'.tr(),
               value: formatter.format(totalConsumption),
               unit: unit,
             ),
@@ -165,7 +191,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                 colors: colors,
                 icon: Icons.warning_amber_rounded,
                 iconColor: Colors.redAccent,
-                title: 'WASTE AMOUNT',
+                title: 'wasteAmount'.tr(),
                 value: formatter.format(periodData['waste_amount']),
                 unit: unit,
               ),
@@ -174,7 +200,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                 colors: colors,
                 icon: Icons.pie_chart_outline,
                 iconColor: Colors.redAccent,
-                title: 'WASTE %',
+                title: 'wastePercentage'.tr(),
                 value: '${periodData['waste_percentage']}',
                 unit: '%',
               ),
@@ -184,21 +210,20 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                   colors: colors,
                   icon: Icons.attach_money,
                   iconColor: Colors.green,
-                  title: 'WASTE COST',
+                  title: 'wasteCost'.tr(),
                   value: formatter.format(periodData['waste_cost']),
-                  unit: 'LE',
+                  unit: 'le'.tr(),
                 ),
               ],
             ],
 
             const SizedBox(height: 16),
 
-            // Avg Daily Consumption Card
             _buildStatCard(
               colors: colors,
               icon: Icons.show_chart,
               iconColor: colors.textSecondary,
-              title: 'AVG. DAILY CONSUMPTION',
+              title: 'avgDailyConsumption'.tr(),
               value: formatter.format(avgDaily),
               unit: unit,
             ),
@@ -395,7 +420,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Consumption Comparison',
+            'consumptionComparison'.tr(),
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
@@ -429,7 +454,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     if (monthlyConsumptions.isEmpty) {
       return Center(
         child: Text(
-          'No data available',
+          'noDataAvailable'.tr(),
           style: TextStyle(color: colors.textSecondary),
         ),
       );
@@ -444,7 +469,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       if (parts.length == 2) {
         final monthInt = int.tryParse(parts[1]) ?? 1;
         final date = DateTime(2000, monthInt);
-        return DateFormat('MMM').format(date);
+        return DateFormat('MMM', context.locale.languageCode).format(date);
       }
       return e.key;
     }).toList();
@@ -494,9 +519,9 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                               mainAxisAlignment: MainAxisAlignment.spaceAround,
                               crossAxisAlignment: CrossAxisAlignment.end,
                               children: List.generate(values.length, (index) {
-                                final valFormat = NumberFormat.compact().format(
-                                  rawValues[index],
-                                );
+                                final valFormat = NumberFormat.compact(
+                                  locale: 'en_US',
+                                ).format(rawValues[index]);
                                 return SizedBox(
                                   width: itemWidth,
                                   child: Column(
@@ -589,7 +614,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
           Padding(
             padding: const EdgeInsets.all(20),
             child: Text(
-              'Detailed Cost',
+              'detailedCost'.tr(),
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -606,12 +631,12 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
               children: [
                 Expanded(
                   flex: 2,
-                  child: Text('Month', style: _tableHeaderStyle(colors)),
+                  child: Text('month'.tr(), style: _tableHeaderStyle(colors)),
                 ),
                 Expanded(
                   flex: 3,
                   child: Text(
-                    'Consumption\n($unit)',
+                    'consumptionUnit'.tr(args: [unit]),
                     textAlign: TextAlign.center,
                     style: _tableHeaderStyle(colors),
                   ),
@@ -619,8 +644,8 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                 Expanded(
                   flex: 2,
                   child: Text(
-                    'Cost(LE)',
-                    textAlign: TextAlign.right,
+                    'costLe'.tr(),
+                    textAlign: TextAlign.end,
                     style: _tableHeaderStyle(colors),
                   ),
                 ),
@@ -635,7 +660,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
               padding: const EdgeInsets.all(20.0),
               child: Center(
                 child: Text(
-                  'No data for this period',
+                  'noDataForPeriod'.tr(),
                   style: TextStyle(color: colors.textSecondary),
                 ),
               ),
@@ -651,14 +676,21 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
               if (parts.length == 2) {
                 final monthInt = int.tryParse(parts[1]) ?? 1;
                 final date = DateTime(int.tryParse(parts[0]) ?? 2000, monthInt);
-                displayMonth = DateFormat('MMMM\nyyyy').format(date);
+                displayMonth = DateFormat(
+                  'MMMM\nyyyy',
+                  context.locale.languageCode,
+                ).format(date);
               }
 
               final consumption = e.value as num;
               final cost = monthlyCosts[monthStr] as num? ?? 0;
 
-              final formatCons = NumberFormat('#,##0.00').format(consumption);
-              final formatCost = '${NumberFormat('#,##0.00').format(cost)} LE';
+              final formatCons = NumberFormat(
+                '#,##0.00',
+                'en_US',
+              ).format(consumption);
+              final formatCost =
+                  '${NumberFormat('#,##0.00', 'en_US').format(cost)} ${UnitsLocalization.getLocalizedCurrency(context)}';
 
               return Column(
                 children: [
@@ -718,7 +750,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
             flex: 2,
             child: Text(
               cost,
-              textAlign: TextAlign.right,
+              textAlign: TextAlign.end,
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.bold,
